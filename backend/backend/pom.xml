@@ -11,10 +11,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>fr.iutinfo.planclasse</groupId>
+    <groupId>fr.iutinfo.seatingplan</groupId>
     <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>plan-de-classe-backend</name>
+    <name>fr.iutinfo.seatingplan</name>
 
     <properties>
         <java.version>21</java.version>
