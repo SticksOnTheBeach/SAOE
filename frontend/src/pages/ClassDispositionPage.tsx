@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Header from '../components/Header'
 
 type ClassDispositionPageProps = {
   children: ReactNode
@@ -7,9 +8,7 @@ type ClassDispositionPageProps = {
 function ClassDispositionPage({ children }: ClassDispositionPageProps) {
   return (
     <>
-      <header>
-        <h1>SAOE - Gestion</h1>
-      </header>
+      <Header />
 
       <div className="content_part">{children}</div>
 
