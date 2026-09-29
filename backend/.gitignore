@@ -1,1 +1,31 @@
-/target/
+# Backend (Maven)
+target/
+
+# Frontend (Node / Vite)
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDEs
+.classpath
+.project
+.settings/
+.factorypath
+.metadata/
+.idea/
+*.iml
+.vscode/
+.sonarlint/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
