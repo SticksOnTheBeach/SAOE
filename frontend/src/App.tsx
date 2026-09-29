@@ -1,11 +1,11 @@
+import ClassDispositionPage from './pages/ClassDispositionPage'
 import RoomPage from './pages/RoomPage'
 
 function App() {
   return (
-    <>
-      <h1>Seating Plan</h1>
+    <ClassDispositionPage>
       <RoomPage />
-    </>
+    </ClassDispositionPage>
   )
 }
 
