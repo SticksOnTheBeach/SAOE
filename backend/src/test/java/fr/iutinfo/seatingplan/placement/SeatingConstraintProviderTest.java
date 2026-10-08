@@ -114,4 +114,27 @@ class SeatingConstraintProviderTest {
                 .given(assignment)
                 .penalizesBy(0);
     }
+
+    // One student per seat
+
+    @Test
+    void twoStudentsOnTheSameSeatArePenalized() {
+        Seat sharedSeat = seat(0, 0, SeatType.AVAILABLE);
+        SeatAssignment first = new SeatAssignment(student(Group.G1A), sharedSeat);
+        SeatAssignment second = new SeatAssignment(student(Group.G1B), sharedSeat);
+
+        constraintVerifier.verifyThat(SeatingConstraintProvider::oneStudentPerSeat)
+                .given(first, second)
+                .penalizesBy(1);
+    }
+
+    @Test
+    void studentsOnDifferentSeatsAreNotPenalized() {
+        SeatAssignment first = new SeatAssignment(student(Group.G1A), seat(0, 0, SeatType.AVAILABLE));
+        SeatAssignment second = new SeatAssignment(student(Group.G1B), seat(0, 1, SeatType.AVAILABLE));
+
+        constraintVerifier.verifyThat(SeatingConstraintProvider::oneStudentPerSeat)
+                .given(first, second)
+                .penalizesBy(0);
+    }
 }
