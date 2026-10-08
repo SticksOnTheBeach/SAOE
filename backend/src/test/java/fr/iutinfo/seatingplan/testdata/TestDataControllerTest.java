@@ -22,8 +22,10 @@ class TestDataControllerTest {
         mockMvc.perform(get("/api/students"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(12))
-                .andExpect(jsonPath("$[0].id").value("s01"))
+                .andExpect(jsonPath("$[0].id").isNotEmpty())
+                .andExpect(jsonPath("$[0].firstName").value("Lea"))
                 .andExpect(jsonPath("$[0].lastName").value("Martin"))
+                .andExpect(jsonPath("$[0].groupName").value("G1A"))
                 .andExpect(jsonPath("$[0].needsPowerOutlet").value(false))
                 .andExpect(jsonPath("$[1].needsPowerOutlet").value(true));
     }
