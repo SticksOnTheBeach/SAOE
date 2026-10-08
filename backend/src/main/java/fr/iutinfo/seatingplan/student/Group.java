@@ -1,3 +1,5 @@
+package fr.iutinfo.seatingplan.student;
+
 public enum Group {
         Groupe1A,
         Groupe1B,

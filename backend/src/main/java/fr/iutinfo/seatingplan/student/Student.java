@@ -1,6 +1,5 @@
 package fr.iutinfo.seatingplan.student;
 
-import fr.iutinfo.seatingplan.group.Group;
 import java.util.UUID;
 
 public class Student{
