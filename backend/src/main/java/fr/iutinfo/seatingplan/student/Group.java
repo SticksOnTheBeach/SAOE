@@ -1,0 +1,18 @@
+public enum Group {
+        Groupe1A,
+        Groupe1B,
+        Groupe2A,
+        Groupe2B,
+        Groupe3A,
+        Groupe3B,
+        Groupe4A,
+        Groupe4B,
+        Groupe5A,
+        Groupe5B,
+        Groupe6A,
+        Groupe6B,
+        Groupe7A,
+        Groupe7B,
+        Groupe8A,
+        Groupe8B,
+}
