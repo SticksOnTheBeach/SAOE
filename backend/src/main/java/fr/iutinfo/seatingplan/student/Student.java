@@ -11,12 +11,9 @@ public class Student{
         private boolean needsPowerOutlet;
 
         public Student(String firstName, String lastName, Group groupName, boolean needsPowerOutlet){
-                /*// pour l'instant l'id, est l'id de 
-                l'étudiant dans notre code, mais dans le futur, 
-                on pourra le remplacer par l'id de l'étudiant dans 
-                la base de données, qui sera celui que l'étudiant possède, 
-                c'est à dire son numéro étudiant universitaire
-                */
+                // For now the id only exists in our code. Later it will be
+                // replaced by the student's university student number,
+                // stored in the database.
                 this.id = UUID.randomUUID().toString(); 
                 this.firstName = firstName;
                 this.lastName = lastName;
