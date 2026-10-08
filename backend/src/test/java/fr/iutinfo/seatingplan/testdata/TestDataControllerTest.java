@@ -34,10 +34,16 @@ class TestDataControllerTest {
     void roomEndpointReturnsTheGrid() throws Exception {
         mockMvc.perform(get("/api/room"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("105"))
-                .andExpect(jsonPath("$.seats.length()").value(5))
-                .andExpect(jsonPath("$.seats[0].length()").value(6))
-                .andExpect(jsonPath("$.seats[1][2]").value("FORBIDDEN"))
-                .andExpect(jsonPath("$.seats[4][0]").value("POWER_OUTLET"));
+                .andExpect(jsonPath("$.id").value("105"))
+                .andExpect(jsonPath("$.name").value("Room 105"))
+                .andExpect(jsonPath("$.rows").value(5))
+                .andExpect(jsonPath("$.columns").value(6))
+                .andExpect(jsonPath("$.seats.length()").value(30))
+                // Seats are listed row by row, so the seat at (row 1, column 2) is at index 1 * 6 + 2 = 8
+                .andExpect(jsonPath("$.seats[8].id").value("r1c2"))
+                .andExpect(jsonPath("$.seats[8].row").value(1))
+                .andExpect(jsonPath("$.seats[8].column").value(2))
+                .andExpect(jsonPath("$.seats[8].type").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.seats[24].type").value("POWER_OUTLET"));
     }
 }
