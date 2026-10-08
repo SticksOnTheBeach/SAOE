@@ -22,7 +22,7 @@ public class Student{
 
         }
 
-        protected String getId() { return this.id; }
+        public String getId() { return this.id; }
         public String getFirstName() { return this.firstName; }
         public String getLastName() { return this.lastName; }
         public Group getGroup() { return this.group; }
