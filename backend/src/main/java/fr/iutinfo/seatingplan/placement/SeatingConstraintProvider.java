@@ -18,6 +18,7 @@ public class SeatingConstraintProvider implements ConstraintProvider {
         return new Constraint[] {
                 forbiddenSeat(factory),
                 sameGroupNeighbors(factory),
+                powerOutletNeeded(factory),
         };
     }
 
@@ -36,5 +37,14 @@ public class SeatingConstraintProvider implements ConstraintProvider {
                 .filter((first, second) -> first.getSeat().isNeighborOf(second.getSeat()))
                 .penalize(HardSoftScore.ONE_HARD)
                 .asConstraint("Same group neighbors");
+    }
+
+    // A student who needs a power outlet always sits on a seat that has one
+    Constraint powerOutletNeeded(ConstraintFactory factory) {
+        return factory.forEach(SeatAssignment.class)
+                .filter(assignment -> assignment.getStudent().needsPowerOutlet()
+                        && !assignment.getSeat().hasOutlet())
+                .penalize(HardSoftScore.ONE_HARD)
+                .asConstraint("Power outlet needed");
     }
 }
