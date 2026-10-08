@@ -1,13 +1,15 @@
 package fr.iutinfo.seatingplan.testdata;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import fr.iutinfo.seatingplan.room.Room;
 import fr.iutinfo.seatingplan.room.Seat;
 import fr.iutinfo.seatingplan.room.SeatType;
 import fr.iutinfo.seatingplan.student.Group;
 import fr.iutinfo.seatingplan.student.Student;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.stereotype.Component;
 
 /**
  * Hardcoded data for the MVP. It will be replaced by real data
@@ -36,7 +38,6 @@ public class TestData {
         return room;
     }
 
-    // Built once: student ids are random UUIDs, so they must not change between calls.
     private final List<Student> students = List.of(
             new Student("Lea", "Martin", Group.G1A, false),
             new Student("Hugo", "Bernard", Group.G1A, true),

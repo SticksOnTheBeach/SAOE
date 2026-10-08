@@ -27,7 +27,6 @@ public class Room {
     public int getColumns() { return this.columns; }
     public List<Seat> getSeats() { return this.seats; }
 
-    // The solver and the frontend both assume exactly one seat per cell of the grid.
     private static void validateGrid(int rows, int columns, List<Seat> seats) {
         if (rows <= 0 || columns <= 0) {
             throw new IllegalArgumentException("A room needs at least one row and one column");
@@ -40,8 +39,7 @@ public class Room {
 
         Set<String> usedCells = new HashSet<>();
         for (Seat seat : seats) {
-            if (seat.getRow() < 0 || seat.getRow() >= rows
-                    || seat.getColumn() < 0 || seat.getColumn() >= columns) {
+            if (seat.getRow() < 0 || seat.getRow() >= rows|| seat.getColumn() < 0 || seat.getColumn() >= columns) {
                 throw new IllegalArgumentException("Seat " + seat.getId() + " is outside the room");
             }
             if (!usedCells.add(seat.getRow() + "," + seat.getColumn())) {
