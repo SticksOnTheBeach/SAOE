@@ -13,10 +13,10 @@ public class Seat {
         this.type = type;
     }
 
-    public String getId() { return id; }
-    public int getRow() { return row; }
-    public int getColumn() { return column; }
-    public SeatType getType() { return type; }
+    public String getId() { return this.id; }
+    public int getRow() { return this.row; }
+    public int getColumn() { return this.column; }
+    public SeatType getType() { return this.type; }
 
     public boolean hasOutlet() {
         return this.type == SeatType.POWER_OUTLET;
