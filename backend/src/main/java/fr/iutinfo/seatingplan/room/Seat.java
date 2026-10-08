@@ -1,10 +1,10 @@
 package fr.iutinfo.seatingplan.room;
 
 public class Seat {
-    private String id;
-    private int row;
-    private int column;
-    private SeatType type;
+    private final String id;
+    private final int row;
+    private final int column;
+    private final SeatType type;
 
     public Seat(String id, int row, int column, SeatType type) {
         this.id = id;

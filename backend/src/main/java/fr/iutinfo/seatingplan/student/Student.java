@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
 public class Student {
-    private String id;
-    private String firstName;
-    private String lastName;
-    private Group groupName;
-    private boolean needsPowerOutlet;
+    private final String id;
+    private final String firstName;
+    private final String lastName;
+    private final Group groupName;
+    private final boolean needsPowerOutlet;
 
     public Student(String firstName, String lastName, Group groupName, boolean needsPowerOutlet) {
         // For now the id only exists in our code. Later it will be
