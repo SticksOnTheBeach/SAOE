@@ -1,18 +1,12 @@
+package fr.iutinfo.seatingplan.student;
+
 public enum Group {
-        Groupe1A,
-        Groupe1B,
-        Groupe2A,
-        Groupe2B,
-        Groupe3A,
-        Groupe3B,
-        Groupe4A,
-        Groupe4B,
-        Groupe5A,
-        Groupe5B,
-        Groupe6A,
-        Groupe6B,
-        Groupe7A,
-        Groupe7B,
-        Groupe8A,
-        Groupe8B,
+    G1A, G1B,
+    G2A, G2B,
+    G3A, G3B,
+    G4A, G4B,
+    G5A, G5B,
+    G6A, G6B,
+    G7A, G7B,
+    G8A, G8B
 }

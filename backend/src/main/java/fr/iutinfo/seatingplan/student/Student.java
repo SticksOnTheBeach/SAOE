@@ -1,31 +1,32 @@
 package fr.iutinfo.seatingplan.student;
 
-import fr.iutinfo.seatingplan.group.Group;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
-public class Student{
-        private String id;
-        private String firstName;
-        private String lastName;
-        private Group group;
+public class Student {
+    private final String id;
+    private final String firstName;
+    private final String lastName;
+    private final Group groupName;
+    private final boolean needsPowerOutlet;
 
-        public Student(String firstName, String lastName, Group group){
-                /*// pour l'instant l'id, est l'id de 
-                l'étudiant dans notre code, mais dans le futur, 
-                on pourra le remplacer par l'id de l'étudiant dans 
-                la base de données, qui sera celui que l'étudiant possède, 
-                c'est à dire son numéro étudiant universitaire
-                */
-                this.id = UUID.randomUUID().toString(); 
-                this.firstName = firstName;
-                this.lastName = lastName;
-                this.group = group;
+    public Student(String firstName, String lastName, Group groupName, boolean needsPowerOutlet) {
+        // For now the id only exists in our code. Later it will be
+        // replaced by the student's university student number,
+        // stored in the database.
+        this.id = UUID.randomUUID().toString();
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.groupName = groupName;
+        this.needsPowerOutlet = needsPowerOutlet;
+    }
 
-        }
+    public String getId() { return this.id; }
+    public String getFirstName() { return this.firstName; }
+    public String getLastName() { return this.lastName; }
+    public Group getGroupName() { return this.groupName; }
 
-        protected String getId() { return this.id; }
-        public String getFirstName() { return this.firstName; }
-        public String getLastName() { return this.lastName; }
-        public Group getGroup() { return this.group; }
-
+    // Without @JsonProperty, Jackson only serializes getXxx()/isXxx() methods
+    @JsonProperty("needsPowerOutlet")
+    public boolean needsPowerOutlet() { return this.needsPowerOutlet; }
 }

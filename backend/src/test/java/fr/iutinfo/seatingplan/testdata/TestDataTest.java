@@ -3,6 +3,7 @@ package fr.iutinfo.seatingplan.testdata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.iutinfo.seatingplan.room.SeatType;
+import fr.iutinfo.seatingplan.student.Group;
 import fr.iutinfo.seatingplan.student.Student;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ class TestDataTest {
     @Test
     void studentIdsAreUnique() {
         long distinctIds = testData.students().stream()
-                .map(Student::id)
+                .map(Student::getId)
                 .distinct()
                 .count();
 
@@ -57,10 +58,17 @@ class TestDataTest {
     }
 
     @Test
+    void studentIdsStayTheSameBetweenCalls() {
+        // The frontend identifies students by id, so ids must not be regenerated on each request.
+        assertThat(testData.students().get(0).getId())
+                .isEqualTo(testData.students().get(0).getId());
+    }
+
+    @Test
     void severalStudentsShareTheSameGroup() {
         // Needed to be able to test the "same group, no direct neighbors" rule later.
-        Map<String, Long> studentsPerGroup = testData.students().stream()
-                .collect(Collectors.groupingBy(Student::groupName, Collectors.counting()));
+        Map<Group, Long> studentsPerGroup = testData.students().stream()
+                .collect(Collectors.groupingBy(Student::getGroupName, Collectors.counting()));
 
         assertThat(studentsPerGroup.values()).allMatch(count -> count >= 2);
     }

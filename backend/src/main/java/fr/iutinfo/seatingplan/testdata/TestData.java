@@ -2,6 +2,7 @@ package fr.iutinfo.seatingplan.testdata;
 
 import fr.iutinfo.seatingplan.room.Room;
 import fr.iutinfo.seatingplan.room.SeatType;
+import fr.iutinfo.seatingplan.student.Group;
 import fr.iutinfo.seatingplan.student.Student;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -27,19 +28,22 @@ public class TestData {
                 List.of(P, P, P, P, P, P)));
     }
 
+    // Built once: student ids are random UUIDs, so they must not change between calls.
+    private final List<Student> students = List.of(
+            new Student("Lea", "Martin", Group.G1A, false),
+            new Student("Hugo", "Bernard", Group.G1A, true),
+            new Student("Chloe", "Dubois", Group.G1A, false),
+            new Student("Lucas", "Thomas", Group.G1A, false),
+            new Student("Manon", "Robert", Group.G1A, false),
+            new Student("Nathan", "Richard", Group.G1A, false),
+            new Student("Ines", "Petit", Group.G1B, false),
+            new Student("Jules", "Durand", Group.G1B, true),
+            new Student("Emma", "Leroy", Group.G1B, false),
+            new Student("Louis", "Moreau", Group.G1B, false),
+            new Student("Sarah", "Simon", Group.G1B, false),
+            new Student("Adam", "Laurent", Group.G1B, false));
+
     public List<Student> students() {
-        return List.of(
-                new Student("s01", "Martin", "Lea", "G1A", false),
-                new Student("s02", "Bernard", "Hugo", "G1A", true),
-                new Student("s03", "Dubois", "Chloe", "G1A", false),
-                new Student("s04", "Thomas", "Lucas", "G1A", false),
-                new Student("s05", "Robert", "Manon", "G1A", false),
-                new Student("s06", "Richard", "Nathan", "G1A", false),
-                new Student("s07", "Petit", "Ines", "G1B", false),
-                new Student("s08", "Durand", "Jules", "G1B", true),
-                new Student("s09", "Leroy", "Emma", "G1B", false),
-                new Student("s10", "Moreau", "Louis", "G1B", false),
-                new Student("s11", "Simon", "Sarah", "G1B", false),
-                new Student("s12", "Laurent", "Adam", "G1B", false));
+        return students;
     }
 }
