@@ -20,6 +20,10 @@ class SeatingConstraintProviderTest {
         return new Student("First", "Last", group, false);
     }
 
+    private static Student studentNeedingOutlet() {
+        return new Student("First", "Last", Group.G1A, true);
+    }
+
     // Forbidden seat
 
     @Test
@@ -79,6 +83,35 @@ class SeatingConstraintProviderTest {
 
         constraintVerifier.verifyThat(SeatingConstraintProvider::sameGroupNeighbors)
                 .given(first, second)
+                .penalizesBy(0);
+    }
+
+    // Power outlet needed
+
+    @Test
+    void studentNeedingOutletOnStandardSeatIsPenalized() {
+        SeatAssignment assignment = new SeatAssignment(studentNeedingOutlet(), seat(0, 0, SeatType.AVAILABLE));
+
+        constraintVerifier.verifyThat(SeatingConstraintProvider::powerOutletNeeded)
+                .given(assignment)
+                .penalizesBy(1);
+    }
+
+    @Test
+    void studentNeedingOutletOnOutletSeatIsNotPenalized() {
+        SeatAssignment assignment = new SeatAssignment(studentNeedingOutlet(), seat(0, 0, SeatType.POWER_OUTLET));
+
+        constraintVerifier.verifyThat(SeatingConstraintProvider::powerOutletNeeded)
+                .given(assignment)
+                .penalizesBy(0);
+    }
+
+    @Test
+    void studentNotNeedingOutletOnStandardSeatIsNotPenalized() {
+        SeatAssignment assignment = new SeatAssignment(student(Group.G1A), seat(0, 0, SeatType.AVAILABLE));
+
+        constraintVerifier.verifyThat(SeatingConstraintProvider::powerOutletNeeded)
+                .given(assignment)
                 .penalizesBy(0);
     }
 }
