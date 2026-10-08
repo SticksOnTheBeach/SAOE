@@ -19,6 +19,7 @@ public class SeatingConstraintProvider implements ConstraintProvider {
                 forbiddenSeat(factory),
                 sameGroupNeighbors(factory),
                 powerOutletNeeded(factory),
+                oneStudentPerSeat(factory),
         };
     }
 
@@ -46,5 +47,13 @@ public class SeatingConstraintProvider implements ConstraintProvider {
                         && !assignment.getSeat().hasOutlet())
                 .penalize(HardSoftScore.ONE_HARD)
                 .asConstraint("Power outlet needed");
+    }
+
+    // Two students never share the same seat
+    Constraint oneStudentPerSeat(ConstraintFactory factory) {
+        return factory.forEachUniquePair(SeatAssignment.class,
+                        Joiners.equal(SeatAssignment::getSeat))
+                .penalize(HardSoftScore.ONE_HARD)
+                .asConstraint("One student per seat");
     }
 }
