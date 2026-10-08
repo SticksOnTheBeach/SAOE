@@ -2,10 +2,11 @@ package fr.iutinfo.seatingplan.testdata;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fr.iutinfo.seatingplan.room.Room;
+import fr.iutinfo.seatingplan.room.Seat;
 import fr.iutinfo.seatingplan.room.SeatType;
 import fr.iutinfo.seatingplan.student.Group;
 import fr.iutinfo.seatingplan.student.Student;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -15,11 +16,20 @@ class TestDataTest {
     private final TestData testData = new TestData();
 
     @Test
-    void roomGridIsRectangular() {
-        List<List<SeatType>> seats = testData.room().seats();
-        int columns = seats.get(0).size();
+    void roomHasOneSeatPerCell() {
+        Room room = testData.room();
 
-        assertThat(seats).allSatisfy(row -> assertThat(row).hasSize(columns));
+        assertThat(room.getSeats()).hasSize(room.getRows() * room.getColumns());
+    }
+
+    @Test
+    void seatIdsAreUnique() {
+        long distinctIds = testData.room().getSeats().stream()
+                .map(Seat::getId)
+                .distinct()
+                .count();
+
+        assertThat(distinctIds).isEqualTo(testData.room().getSeats().size());
     }
 
     @Test
@@ -29,9 +39,8 @@ class TestDataTest {
 
     @Test
     void roomHasEnoughUsableSeatsForAllStudents() {
-        long usableSeats = testData.room().seats().stream()
-                .flatMap(List::stream)
-                .filter(seat -> seat != SeatType.FORBIDDEN)
+        long usableSeats = testData.room().getSeats().stream()
+                .filter(seat -> seat.getType() != SeatType.FORBIDDEN)
                 .count();
 
         assertThat(usableSeats).isGreaterThanOrEqualTo(testData.students().size());
@@ -74,9 +83,8 @@ class TestDataTest {
     }
 
     private long countSeats(SeatType type) {
-        return testData.room().seats().stream()
-                .flatMap(List::stream)
-                .filter(seat -> seat == type)
+        return testData.room().getSeats().stream()
+                .filter(seat -> seat.getType() == type)
                 .count();
     }
 }

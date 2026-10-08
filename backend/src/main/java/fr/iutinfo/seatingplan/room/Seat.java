@@ -21,4 +21,11 @@ public class Seat {
     public boolean hasOutlet() {
         return this.type == SeatType.POWER_OUTLET;
     }
+
+    // Direct neighbors share a side: left, right, front or back (not diagonal)
+    public boolean isNeighborOf(Seat other) {
+        int rowGap = Math.abs(this.row - other.row);
+        int columnGap = Math.abs(this.column - other.column);
+        return rowGap + columnGap == 1;
+    }
 }
