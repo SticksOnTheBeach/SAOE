@@ -13,9 +13,9 @@ function Header() {
             <Link to="/">SAOE</Link>
           </h1>
         </div>
-        <div className="flex justify-between gap-3">
+        <div className="flex justify-between gap-3 pt-1.5">
           <Link to={"/"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Acceuil</button></Link>
-          <Link to={"/"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Salles</button></Link>
+          <Link to={"/Room"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Salles</button></Link>
           <Link to={"/"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Historique Plans</button></Link>
           <Link to={"/"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Promos</button></Link>
         </div>
@@ -23,7 +23,7 @@ function Header() {
 
       <div className="relative gap-3 h-18 w-30 pt-1.5 cursor-pointer" onClick={() => setIsMenuOpen((open) => !open)}>
         <img
-          src={isMenuOpen ? '/pp_extended.png' : '/pp_close.png'}
+          src={isMenuOpen ? '/pp_extended.png' : '/pp_closed.png'}
           alt="Menu Utilisateur"
           className="w-4/5 h-auto pt-2"
         />
