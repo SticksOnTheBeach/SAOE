@@ -1,17 +1,13 @@
-import type { ReactNode } from 'react'
+import { Outlet } from 'react-router'
 import Header from '../components/Header'
 
-type ClassDispositionPageProps = {
-  children: ReactNode
-}
-
-function ClassDispositionPage({ children }: ClassDispositionPageProps) {
+function ClassDispositionPage() {
   return (
     <>
       <Header />
-
-      <div className="content_part">{children}</div>
-
+      <div className="content_part">
+        <Outlet />
+      </div>
       <footer></footer>
     </>
   )
