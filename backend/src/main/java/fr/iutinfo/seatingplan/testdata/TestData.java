@@ -32,8 +32,17 @@ public class TestData {
             {P, P, P, P, P, P},
     };
 
-    private final Room room = buildRoom("105", "Room 105", ROOM_105_LAYOUT);
+    private static final SeatType[][] ROOM_106_LAYOUT = {
+        {A, A, A, A},
+        {A, A, A, A},
+        {A, F, A, A},
+        {P, P, P, P},
+};
 
+    private final Room room = buildRoom("105", "Room 105", ROOM_105_LAYOUT);
+    private final List<Room> rooms = List.of(room, buildRoom("106", "Room 106", ROOM_106_LAYOUT));
+
+    public List<Room> rooms() { return rooms; }
     public Room room() {
         return room;
     }

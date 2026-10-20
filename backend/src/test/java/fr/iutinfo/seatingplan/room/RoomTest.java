@@ -1,10 +1,10 @@
 package fr.iutinfo.seatingplan.room;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.Test;
 
 class RoomTest {
@@ -46,5 +46,16 @@ class RoomTest {
         seats.clear();
 
         assertThat(room.getSeats()).hasSize(2);
+    }
+
+    @Test
+    void usableSeatCountIgnoresForbiddenSeats() {
+        Room room = new Room("t", "Test", 1, 3, List.of(
+                new Seat("a", 0, 0, SeatType.AVAILABLE),
+                new Seat("b", 0, 1, SeatType.FORBIDDEN),
+                new Seat("c", 0, 2, SeatType.POWER_OUTLET)));
+
+        assertThat(room.getUsableSeatCount()).isEqualTo(2);
+        assertThat(room.getOutletSeatCount()).isEqualTo(1);
     }
 }

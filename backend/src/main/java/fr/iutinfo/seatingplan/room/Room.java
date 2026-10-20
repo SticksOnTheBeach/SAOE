@@ -33,6 +33,10 @@ public class Room {
         return (int) this.seats.stream().filter(seat -> seat.getType() != SeatType.FORBIDDEN).count();
     }
 
+    public int getOutletSeatCount(){
+        return this.seats.stream().filter(seat -> seat.getType() == SeatType.POWER_OUTLET).toList().size();
+    }
+
     private static void validateGrid(int rows, int columns, List<Seat> seats) {
         if (rows <= 0 || columns <= 0) {
             throw new IllegalArgumentException("A room needs at least one row and one column");
