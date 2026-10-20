@@ -26,6 +26,12 @@ public class Room {
     public int getRows() { return this.rows; }
     public int getColumns() { return this.columns; }
     public List<Seat> getSeats() { return this.seats; }
+    public int getSeatCount() { return this.seats.size(); }
+
+    // on compte le nombre de sièges utilisables, c'est-à-dire ceux qui ne sont pas interdits
+    public int getUsableSeatCount() {
+        return (int) this.seats.stream().filter(seat -> seat.getType() != SeatType.FORBIDDEN).count();
+    }
 
     private static void validateGrid(int rows, int columns, List<Seat> seats) {
         if (rows <= 0 || columns <= 0) {
