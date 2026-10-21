@@ -1,4 +1,3 @@
-
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -19,18 +18,33 @@ function RoomPage() {
 
   async function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const input = e.currentTarget.elements.namedItem('name') as HTMLInputElement
+    const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement
+    const colunmInput = e.currentTarget.elements.namedItem('columns') as HTMLInputElement
+    const rowInput = e.currentTarget.elements.namedItem('rows') as HTMLInputElement
+
+    const nbSeats = Number(colunmInput.value) * Number(rowInput.value)
+
     setMessage('')
     setError('')
     setLoading(true)
+
     try {
-      const res = await fetch('/room', {
+      const res = await fetch('/api/room', {
         method: 'POST',
-        body: new URLSearchParams({ name: input.value }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: nameInput.value,
+          columns: Number(colunmInput.value),
+          rows: Number(rowInput.value),
+        }),
       })
       if (!res.ok) throw new Error('Erreur ' + res.status)
-      const data = await res.json()
-      setMessage(`${data.name} : ${data.rows} lignes × ${data.columns} colonnes, ${data.seats.length} places`)
+      await res.json()
+      
+      // Message demandé
+      setMessage(`Création de la salle ${nameInput.value} avec ${nbSeats} places`)
     } catch (err) {
       console.error(err)
       setError(String(err))
@@ -71,17 +85,17 @@ function RoomPage() {
                   <div className='flex flex-col pt-15 gap-5'>
                     <div>
                       <label htmlFor="">Nom de la classe : </label>
-                      <input type="text" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3' maxLength={30}/><br />
+                      <input type="text" name="name" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3' maxLength={30}/><br />
                     </div>
                     
                     <div>
                       <label htmlFor="">Nombre de colonnes : </label>
-                      <input type="number" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
+                      <input type="number" name="columns" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
                     </div>
 
                     <div>
                       <label htmlFor="">Nombre de lignes : </label>
-                      <input type="number" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
+                      <input type="number" name="rows" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
                     </div>
                     <p>Nombre de place total : <span className="mx-3">50</span></p>
                   </div>
