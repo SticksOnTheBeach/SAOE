@@ -1,3 +1,4 @@
+
 function HomePage() {
   return (
     <div className="flex min-h-[calc(100vh-64px)] justify-center ">
@@ -26,5 +27,4 @@ function HomePage() {
     </div>
   )
 }
-
 export default HomePage
