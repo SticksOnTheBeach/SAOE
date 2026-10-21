@@ -1,4 +1,3 @@
-
 import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 
@@ -10,6 +9,9 @@ function RoomPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [planX, setPlanX] = useState('')
+  const [planY, setPlanY] = useState("")
+  const totalPlaces = Number(planX) * Number(planY)
 
   function resetDialog() {
     setMessage('')
@@ -42,11 +44,11 @@ function RoomPage() {
   return (
     <div>
       <div className="grid grid-cols-5 gap-10 px-20 py-10">
-        <div onClick={() => dialogRef.current?.showModal()} className="flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
+        <div onClick={() => dialogRef.current?.showModal()} className="cursor-pointer flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
           <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
         </div>
         {Array.from({ length: x }, (_, i) => ( // Création des divs
-          <div onClick={() => console.log("Salle ", i, " selectionnée")} key={i} className="group flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
+          <div onClick={() => console.log("Salle ", i, " selectionnée")} key={i} className="cursor-pointer group flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
             <div>
               <p className="text-4xl text-center text-[#4D4D4D] select-none">{room_name+i}</p>
               <p className="text-l text-center text-[#4D4D4D] select-none">Places disponible : {room_places}</p>
@@ -59,35 +61,44 @@ function RoomPage() {
         ))}
       </div>
 
-      <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-3/4 h-3/4 rounded-md bg-transparent backdrop:bg-black/50">
+      <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
         <div className='w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
-          <form onSubmit={send}>
-            <img onClick={() => dialogRef.current?.close()} src="/x-circle-fill.svg" alt="" className='ml-auto w-7 h-auto invert'/>
+          <form onSubmit={send} className='flex h-full flex-col'>
+            <img onClick={() => dialogRef.current?.close()} src="/x-circle-fill.svg" alt="" className='block ml-auto w-7 h-auto invert cursor-pointer'/>
             <h2 className='text-center text-4xl'>Outil de création de salle</h2>
-            <div className='flex gap-2 px-3 pt-10'>
-              <div>
-                <div className='flex-1 border-1 border-gray-300 rounded-md h-full w-full p-5'>
+
+            <div className='flex flex-1 min-h-0 gap-2 px-3 pt-10 w-full'>
+              <div className='flex flex-col'>
+                <div className='flex-1 border-1 border-gray-300 rounded-md p-5'>
                   <h2 className='text-center text-2xl'>Caractéristiques de la classe</h2>
                   <div className='flex flex-col pt-15 gap-5'>
                     <div>
-                      <label htmlFor="">Nom de la classe : </label>
-                      <input type="text" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3' maxLength={30}/><br />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="">Nombre de colonnes : </label>
-                      <input type="number" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
+                      <label htmlFor="name">Nom de la classe : </label>
+                      <input type="text" name="name" id="name" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='R50'/><br />
                     </div>
 
                     <div>
-                      <label htmlFor="">Nombre de lignes : </label>
-                      <input type="number" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
+                      <label htmlFor="columns">Nombre de colonnes : </label>
+                      <input value={planY} onChange={(e) => setPlanY(e.target.value)} type="number" name="columns" id="columns" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='10'/><br />
                     </div>
-                    <p>Nombre de place total : <span className="mx-3">50</span></p>
+
+                    <div>
+                      <label htmlFor="rows">Nombre de lignes : </label>
+                      <input value={planX} onChange={(e) => setPlanX(e.target.value)} type="number" name="rows" id="rows" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='5'/><br />
+                    </div>
+
+                    <p>Nombre de place total : 
+                      <span className="mx-3">{totalPlaces}</span>
+                    </p>
+
+                    <div>
+                      <label htmlFor="promo">Nom de la promotion : </label>
+                      <input type="text" name="promo" id="promo" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='G4B (sensible à la casse)'/><br />
+                    </div>
                   </div>
                 </div>
                 <div className='flex justify-center gap-15 pt-10'>
-                  <button className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>Aperçu</button>
+                  <button type="button" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>Aperçu</button>
                   <button type="submit" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>{loading ? 'Envoi…' : 'Valider'}</button>
                   {message && (
                     <p className="rounded-md py-3 text-center text-xl">
@@ -101,9 +112,18 @@ function RoomPage() {
                   )}
                 </div>
               </div>
-              <div className='flex-2 border-1 border-gray-300 rounded-md h-full w-full p-3'>
+
+              <div className='flex-2 border-1 border-gray-300 rounded-md p-3 overflow-auto'>
                 <h2 className='text-center text-2xl'>Plan de classe</h2>
-                <img src="" alt="" />
+                <div className='flex flex-col gap-2 px-20 py-10'>
+                  {Array.from({ length: Number(planX) }, (_, column) => (
+                    <div key={column} className='flex gap-2'>
+                      {Array.from({ length: Number(planY) }, (_, row) => (
+                        <div key={row} className="flex-1 group flex items-center justify-center aspect-square rounded-md bg-gray-200 hover:bg-gray-300"></div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </form>
