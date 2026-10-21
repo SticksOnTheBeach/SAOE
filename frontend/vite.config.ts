@@ -9,10 +9,14 @@ export default defineConfig({
     // Fixed port: the backend's CORS config allows this exact origin
     port: 5174,
     strictPort: true,
-    proxy: { "/api": "http://localhost:8080" },
     watch: {
       usePolling: true, // Indispensable pour WSL sous Windows !
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
   },
 })
-

@@ -5,13 +5,12 @@ import java.util.List;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.iutinfo.seatingplan.room.Room;
 import fr.iutinfo.seatingplan.student.Student;
-
 
 @RestController
 @RequestMapping("/api")
@@ -28,14 +27,17 @@ public class TestDataController {
     public List<Student> students() {
         return testData.students();
     }
-    
+
     @GetMapping("/room")
     public Room room() {
         return testData.room();
     }
 
+    public record RoomForm(String name, int columns, int rows) {}
+
     @PostMapping("/room")
-    public Room handlePost(@RequestParam("name") String name) {
-        return testData.room(name);
+    public Room createRoom(@RequestBody RoomForm form) {
+        System.out.println("Salle reçue : " + form.name() + " (" + form.columns() + "x" + form.rows() + ")");
+        return testData.room();
     }
 }

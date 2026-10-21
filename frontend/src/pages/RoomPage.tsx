@@ -2,168 +2,154 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router'
 
 function RoomPage() {
-  const room_name = 200
-  const room_places = 30
-  const x = 13
-  const dialogRef = useRef<HTMLDialogElement>(null)
+    const room_name = 200
+    const room_places = 30
+    const x = 13
+    const dialogRef = useRef<HTMLDialogElement>(null)
 
-  // Valeurs du formulaire de création de salle
-  const [name, setName] = useState('')
-  const [columns, setColumns] = useState(6)
-  const [rows, setRows] = useState(5)
+    const [message, setMessage] = useState('')
+    const [error, setError] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [planX, setPlanX] = useState('')
+    const [planY, setPlanY] = useState("")
+    const totalPlaces = Number(planX) * Number(planY)
 
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  // Vide les messages (appelé à chaque fermeture de la pop-up, croix ou Échap)
-  function resetDialog() {
-    setMessage('')
-    setError('')
-    setLoading(false)
-  }
-
-  async function send(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setMessage('')
-    setError('')
-    setLoading(true)
-    try {
-      const res = await fetch('/api/rooms', {
-        method: 'POST',
-        body: new URLSearchParams({ name, rows: String(rows), columns: String(columns) }),
-      })
-      if (!res.ok) throw new Error('Erreur ' + res.status)
-      const data = await res.json()
-      setMessage(`${data.name} : ${data.rows} lignes × ${data.columns} colonnes, ${data.seats.length} places`)
-    } catch (err) {
-      console.error(err)
-      setError(String(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  interface GenererCasesParams {
-    rows: number;
-    columns: number;
-  }
-
-  function genererTableauCases({ rows, columns }: GenererCasesParams): React.ReactNode[] {
-    const cases: React.ReactNode[] = [];
-    const total = rows * columns;
-
-    // Remplissage du tableau avec la boucle for
-    for (let i = 0; i < total; i++) {
-      cases.push(
-        <div 
-          key={i} 
-          className="aspect-square bg-gray-300 hover:bg-gray-400 transition-colors rounded-sm" 
-        />
-      );
+    // Vide les messages (appelé à chaque fermeture de la pop-up, croix ou Échap)
+    function resetDialog() {
+        setMessage('')
+        setError('')
+        setLoading(false)
     }
 
-    return cases;
-  }
+    async function send(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement
+        const colunmInput = e.currentTarget.elements.namedItem('columns') as HTMLInputElement
+        const rowInput = e.currentTarget.elements.namedItem('rows') as HTMLInputElement
 
-  return (
-    <div>
-      <div className="grid grid-cols-5 gap-10 px-20 py-10">
-        <div onClick={() => dialogRef.current?.showModal()} className="flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
-          <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
-        </div>
-        {Array.from({ length: x }, (_, i) => ( // Création des divs
-          <div onClick={() => console.log("Salle ", i, " selectionnée")} key={i} className="group flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
-            <div>
-              <p className="text-4xl text-center text-[#4D4D4D] select-none">{room_name+i}</p>
-              <p className="text-l text-center text-[#4D4D4D] select-none">Places disponible : {room_places}</p>
-              <div className="flex justify-between mt-20 invisible group-hover:visible">
-                <img onClick={() => dialogRef.current?.showModal()} src="/pen.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md"/>
-                <Link to="/ClassDisposition"><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md"/></Link>
-              </div>
+        const nbSeats = Number(colunmInput.value) * Number(rowInput.value)
+
+        setMessage('')
+        setError('')
+        setLoading(true)
+
+        try {
+            const res = await fetch('/api/rooms', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: nameInput.value,
+                    columns: Number(colunmInput.value),
+                    rows: Number(rowInput.value),
+                }),
+            })
+            if (!res.ok) throw new Error('Erreur ' + res.status)
+            await res.json()
+
+            // Message demandé
+            setMessage(`Création de la salle ${nameInput.value} avec ${nbSeats} places`)
+        } catch (err) {
+            console.error(err)
+            setError(String(err))
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <div>
+            <div className="grid grid-cols-5 gap-10 px-20 py-10">
+                <div onClick={() => dialogRef.current?.showModal()} className="cursor-pointer flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
+                    <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
+                </div>
+                {Array.from({ length: x }, (_, i) => ( // Création des divs
+                    <div onClick={() => console.log("Salle ", i, " selectionnée")} key={i} className="cursor-pointer group flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
+                        <div>
+                            <p className="text-4xl text-center text-[#4D4D4D] select-none">{room_name+i}</p>
+                            <p className="text-l text-center text-[#4D4D4D] select-none">Places disponible : {room_places}</p>
+                            <div className="flex justify-between mt-20 invisible group-hover:visible">
+                                <img onClick={() => dialogRef.current?.showModal()} src="/pen.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
+                                <Link to="/ClassDisposition"><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
-          </div>
-        ))}
-      </div>
 
-      <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-3/4 h-3/4 rounded-md bg-transparent backdrop:bg-black/50">
-        <div className='w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
-          <form onSubmit={send}>
-            <img onClick={() => dialogRef.current?.close()} src="/x-circle-fill.svg" alt="" className='ml-auto w-7 h-auto invert'/>
-            <h2 className='text-center text-4xl'>Outil de création de salle</h2>
-            <div className='flex gap-2 px-3 pt-10'>
-              <div>
-                <div className='flex-1 border-1 border-gray-300 rounded-md h-full w-full p-5'>
-                  <h2 className='text-center text-2xl'>Caractéristiques de la classe</h2>
-                  <div className='flex flex-col pt-15 gap-5'>
-                    <div>
-                      <label htmlFor="room-name">Nom de la classe : </label>
-                      <input
-                        type="text" id="room-name" value={name} required maxLength={30}
-                        onChange={e => setName(e.target.value)}
-                        className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3'
-                      /><br />
-                    </div>
+            <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
+                <div className='w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+                    <form onSubmit={send} className='flex h-full flex-col'>
+                        <img onClick={() => dialogRef.current?.close()} src="/x-circle-fill.svg" alt="" className='block ml-auto w-7 h-auto invert cursor-pointer'/>
+                        <h2 className='text-center text-4xl'>Outil de création de salle</h2>
 
-                    <div>
-                      <label htmlFor="room-columns">Nombre de colonnes : </label>
-                      <input
-                        type="number" id="room-columns" value={columns} min={1} max={100}
-                        onChange={e => setColumns(Number(e.target.value))}
-                        className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15'
-                      /><br />
-                    </div>
+                        <div className='flex flex-1 min-h-0 gap-2 px-3 pt-10 w-full'>
+                            <div className='flex flex-col'>
+                                <div className='flex-1 border-1 border-gray-300 rounded-md p-5'>
+                                    <h2 className='text-center text-2xl'>Caractéristiques de la classe</h2>
+                                    <div className='flex flex-col pt-15 gap-5'>
+                                        <div>
+                                            <label htmlFor="name">Nom de la classe : </label>
+                                            <input type="text" name="name" id="name" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='R50'/><br />
+                                        </div>
 
-                    <div>
-                      <label htmlFor="room-rows">Nombre de lignes : </label>
-                      <input
-                        type="number" id="room-rows" value={rows} min={1} max={100}
-                        onChange={e => setRows(Number(e.target.value))}
-                        className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15'
-                      /><br />
-                    </div>
-                    <p>Nombre de place total : <span className="mx-3">{rows * columns}</span></p>
-                  </div>
+                                        <div>
+                                            <label htmlFor="columns">Nombre de colonnes : </label>
+                                            <input value={planY} onChange={(e) => setPlanY(e.target.value)} type="number" name="columns" id="columns" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='10'/><br />
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="rows">Nombre de lignes : </label>
+                                            <input value={planX} onChange={(e) => setPlanX(e.target.value)} type="number" name="rows" id="rows" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='5'/><br />
+                                        </div>
+
+                                        <p>Nombre de place total :
+                                            <span className="mx-3">{totalPlaces}</span>
+                                        </p>
+
+                                        <div>
+                                            <label htmlFor="promo">Nom de la promotion : </label>
+                                            <input type="text" name="promo" id="promo" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='G4B (sensible à la casse)'/><br />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='flex justify-center gap-15 pt-10'>
+                                    <button type="button" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>Aperçu</button>
+                                    <button type="submit" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>{loading ? 'Envoi…' : 'Valider'}</button>
+                                    {message && (
+                                        <p className="rounded-md py-3 text-center text-xl">
+                                            {message}
+                                        </p>
+                                    )}
+                                    {error && (
+                                        <p className="">
+                                            {error}
+                                        </p>
+                                    )}
+
+                                </div>
+                            </div>
+
+                            <div className='flex-2 border-1 border-gray-300 rounded-md p-3 overflow-auto'>
+                                <h2 className='text-center text-2xl'>Plan de classe</h2>
+                                <div className='flex flex-col gap-2 px-20 py-10'>
+                                    {Array.from({ length: Number(planX) }, (_, column) => (
+                                        <div key={column} className='flex gap-2'>
+                                            {Array.from({ length: Number(planY) }, (_, row) => (
+                                                <div key={row} className="flex-1 group flex items-center justify-center aspect-square rounded-md bg-gray-200 hover:bg-gray-300"></div>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                <div className='flex justify-center gap-15 pt-10'>
-                  <button type="button" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>Aperçu</button>
-                  <button type="submit" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>{loading ? 'Envoi…' : 'Valider'}</button>
-                  {message && (
-                    <p className="rounded-md py-3 text-center text-xl">
-                      {message}
-                    </p>
-                  )}
-                  {error && (
-                    <p className="">
-                      {error}
-                    </p>
-                  )}
+            </dialog>
 
-                </div>
-              </div>
-              <div className='flex-2 border-1 border-gray-300 rounded-md h-full w-full p-3'>
-                <h2 className='text-center text-2xl'>Plan de classe</h2>
-                <img src="" alt="" />
-
-                {/*  
-                <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
-                  {Array.from({ length: rows * columns }, (_, i) => (
-                    <div key={i} className="aspect-square bg-gray-300" />
-                  ))}
-                </div>*/}
-
-                <div className="grid gap-1 p-2 bg-gray-100 rounded" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
-                  {genererTableauCases({ rows, columns })}
-                  
-                </div>
-              </div>
-            </div>
-          </form>
         </div>
-      </dialog>
-
-    </div>
-  )
+    )
 }
 
 export default RoomPage
