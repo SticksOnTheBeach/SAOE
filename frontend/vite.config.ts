@@ -9,5 +9,8 @@ export default defineConfig({
     // Fixed port: the backend's CORS config allows this exact origin
     port: 5174,
     strictPort: true,
+    watch: {
+      usePolling: true, // Indispensable pour WSL sous Windows !
+    },
   },
 })
