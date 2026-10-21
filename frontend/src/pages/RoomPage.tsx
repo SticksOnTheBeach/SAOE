@@ -68,8 +68,8 @@ function RoomPage() {
               <p className="text-4xl text-center text-[#4D4D4D] select-none">{room_name+i}</p>
               <p className="text-l text-center text-[#4D4D4D] select-none">Places disponible : {room_places}</p>
               <div className="flex justify-between mt-20 invisible group-hover:visible">
-                <img onClick={() => dialogRef.current?.showModal()} src="/pen.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md"/>
-                <Link to="/ClassDisposition"><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md"/></Link>
+                <img onClick={() => dialogRef.current?.showModal()} src="/pen.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
+                <Link to="/ClassDisposition"><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
               </div>
             </div>
           </div>
