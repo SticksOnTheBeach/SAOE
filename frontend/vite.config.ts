@@ -10,5 +10,9 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     proxy: { "/api": "http://localhost:8080" },
+    watch: {
+      usePolling: true, // Indispensable pour WSL sous Windows !
+    },
   },
 })
+
