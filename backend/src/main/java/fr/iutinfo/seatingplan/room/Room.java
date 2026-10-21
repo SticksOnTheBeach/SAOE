@@ -12,7 +12,7 @@ public class Room {
     private final List<Seat> seats;
 
     public Room(String id, String name, int rows, int columns, List<Seat> seats) {
-        validateGrid(rows, columns, seats);
+    	validateGridRoom(rows, columns, seats);
         this.id = id;
         this.name = name;
         this.rows = rows;
@@ -37,21 +37,29 @@ public class Room {
         return this.seats.stream().filter(seat -> seat.getType() == SeatType.POWER_OUTLET).toList().size();
     }
 
-    private static void validateGrid(int rows, int columns, List<Seat> seats) {
+    private static void validateGridRoom(int rows, int columns, List<Seat> seats) {
         if (rows <= 0 || columns <= 0) {
             throw new IllegalArgumentException("A room needs at least one row and one column");
         }
+
+        // vérifie que le nombres de places n'est pas supérieure à la capacité de la salle
         if (seats.size() != rows * columns) {
             throw new IllegalArgumentException(
                     "Expected " + rows * columns + " seats for a " + rows + "x" + columns
                             + " room, got " + seats.size());
         }
 
+
         Set<String> usedCells = new HashSet<>();
         for (Seat seat : seats) {
+            /* vérifie que la place n'est pas en dehors des coordonnées de la salle, par exemple que l'on ai pas une salle
+            en 10 10 pour une salle de 9 rangées et 9 colonnes
+             */
             if (seat.getRow() < 0 || seat.getRow() >= rows|| seat.getColumn() < 0 || seat.getColumn() >= columns) {
                 throw new IllegalArgumentException("Seat " + seat.getId() + " is outside the room");
             }
+
+            // on vérifie que deux places ne partagent pas la même case, donc la même colonne pour la même rangée
             if (!usedCells.add(seat.getRow() + "," + seat.getColumn())) {
                 throw new IllegalArgumentException("Two seats share the cell of seat " + seat.getId());
             }

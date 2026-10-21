@@ -6,6 +6,12 @@ function RoomPage() {
   const room_places = 30
   const x = 13
   const dialogRef = useRef<HTMLDialogElement>(null)
+
+  // Valeurs du formulaire de création de salle
+  const [name, setName] = useState('')
+  const [columns, setColumns] = useState(6)
+  const [rows, setRows] = useState(5)
+
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,14 +25,13 @@ function RoomPage() {
 
   async function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const input = e.currentTarget.elements.namedItem('name') as HTMLInputElement
     setMessage('')
     setError('')
     setLoading(true)
     try {
-      const res = await fetch('/api/room', {
+      const res = await fetch('/api/rooms', {
         method: 'POST',
-        body: new URLSearchParams({ name: input.value }),
+        body: new URLSearchParams({ name, rows: String(rows), columns: String(columns) }),
       })
       if (!res.ok) throw new Error('Erreur ' + res.status)
       const data = await res.json()
@@ -37,6 +42,28 @@ function RoomPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  interface GenererCasesParams {
+    rows: number;
+    columns: number;
+  }
+
+  function genererTableauCases({ rows, columns }: GenererCasesParams): React.ReactNode[] {
+    const cases: React.ReactNode[] = [];
+    const total = rows * columns;
+
+    // Remplissage du tableau avec la boucle for
+    for (let i = 0; i < total; i++) {
+      cases.push(
+        <div 
+          key={i} 
+          className="aspect-square bg-gray-300 hover:bg-gray-400 transition-colors rounded-sm" 
+        />
+      );
+    }
+
+    return cases;
   }
 
   return (
@@ -70,24 +97,36 @@ function RoomPage() {
                   <h2 className='text-center text-2xl'>Caractéristiques de la classe</h2>
                   <div className='flex flex-col pt-15 gap-5'>
                     <div>
-                      <label htmlFor="">Nom de la classe : </label>
-                      <input type="text" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3' maxLength={30}/><br />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="">Nombre de colonnes : </label>
-                      <input type="number" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
+                      <label htmlFor="room-name">Nom de la classe : </label>
+                      <input
+                        type="text" id="room-name" value={name} required maxLength={30}
+                        onChange={e => setName(e.target.value)}
+                        className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3'
+                      /><br />
                     </div>
 
                     <div>
-                      <label htmlFor="">Nombre de lignes : </label>
-                      <input type="number" name="" id="" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15' max={100}/><br />
+                      <label htmlFor="room-columns">Nombre de colonnes : </label>
+                      <input
+                        type="number" id="room-columns" value={columns} min={1} max={100}
+                        onChange={e => setColumns(Number(e.target.value))}
+                        className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15'
+                      /><br />
                     </div>
-                    <p>Nombre de place total : <span className="mx-3">50</span></p>
+
+                    <div>
+                      <label htmlFor="room-rows">Nombre de lignes : </label>
+                      <input
+                        type="number" id="room-rows" value={rows} min={1} max={100}
+                        onChange={e => setRows(Number(e.target.value))}
+                        className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15'
+                      /><br />
+                    </div>
+                    <p>Nombre de place total : <span className="mx-3">{rows * columns}</span></p>
                   </div>
                 </div>
                 <div className='flex justify-center gap-15 pt-10'>
-                  <button className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>Aperçu</button>
+                  <button type="button" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>Aperçu</button>
                   <button type="submit" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1'>{loading ? 'Envoi…' : 'Valider'}</button>
                   {message && (
                     <p className="rounded-md py-3 text-center text-xl">
@@ -105,6 +144,18 @@ function RoomPage() {
               <div className='flex-2 border-1 border-gray-300 rounded-md h-full w-full p-3'>
                 <h2 className='text-center text-2xl'>Plan de classe</h2>
                 <img src="" alt="" />
+
+                {/*  
+                <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+                  {Array.from({ length: rows * columns }, (_, i) => (
+                    <div key={i} className="aspect-square bg-gray-300" />
+                  ))}
+                </div>*/}
+
+                <div className="grid gap-1 p-2 bg-gray-100 rounded" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+                  {genererTableauCases({ rows, columns })}
+                  
+                </div>
               </div>
             </div>
           </form>
