@@ -12,5 +12,11 @@ export default defineConfig({
     watch: {
       usePolling: true, // Indispensable pour WSL sous Windows !
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
   },
 })

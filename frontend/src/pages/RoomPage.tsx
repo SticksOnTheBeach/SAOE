@@ -21,18 +21,33 @@ function RoomPage() {
 
   async function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const input = e.currentTarget.elements.namedItem('name') as HTMLInputElement
+    const nameInput = e.currentTarget.elements.namedItem('name') as HTMLInputElement
+    const colunmInput = e.currentTarget.elements.namedItem('columns') as HTMLInputElement
+    const rowInput = e.currentTarget.elements.namedItem('rows') as HTMLInputElement
+
+    const nbSeats = Number(colunmInput.value) * Number(rowInput.value)
+
     setMessage('')
     setError('')
     setLoading(true)
+
     try {
-      const res = await fetch('/room', {
+      const res = await fetch('/api/room', {
         method: 'POST',
-        body: new URLSearchParams({ name: input.value }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: nameInput.value,
+          columns: Number(colunmInput.value),
+          rows: Number(rowInput.value),
+        }),
       })
       if (!res.ok) throw new Error('Erreur ' + res.status)
-      const data = await res.json()
-      setMessage(`${data.name} : ${data.rows} lignes × ${data.columns} colonnes, ${data.seats.length} places`)
+      await res.json()
+      
+      // Message demandé
+      setMessage(`Création de la salle ${nameInput.value} avec ${nbSeats} places`)
     } catch (err) {
       console.error(err)
       setError(String(err))
