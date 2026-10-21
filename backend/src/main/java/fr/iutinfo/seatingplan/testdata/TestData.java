@@ -42,10 +42,12 @@ public class TestData {
     private final Room room = buildRoom("105", "Room 105", ROOM_105_LAYOUT);
     private final List<Room> rooms = List.of(room, buildRoom("106", "Room 106", ROOM_106_LAYOUT));
 
+    
     public List<Room> rooms() { return rooms; }
-    public Room room() {
-        return room;
+    public Room room(String name) {
+        return buildRoom(name, "Room " + name, ROOM_105_LAYOUT);
     }
+    public Room room() { return room; }
 
     private final List<Student> students = List.of(
             new Student("Lea", "Martin", Group.G1A, false),

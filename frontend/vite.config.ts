@@ -9,5 +9,6 @@ export default defineConfig({
     // Fixed port: the backend's CORS config allows this exact origin
     port: 5174,
     strictPort: true,
+    proxy: { "/api": "http://localhost:8080" },
   },
 })
