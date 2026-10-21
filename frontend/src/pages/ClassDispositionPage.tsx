@@ -1,15 +1,8 @@
-import { Outlet } from 'react-router'
-import Header from '../components/Header'
-
 function ClassDispositionPage() {
   return (
-    <>
-      <Header />
-      <div className="content_part">
-        <Outlet />
-      </div>
-      <footer></footer>
-    </>
+    <div>
+      <h2>Disposition de la classe</h2>
+    </div>
   )
 }
 
