@@ -4,7 +4,7 @@ function HomePage() {
     <div className="flex min-h-[calc(100vh-64px)] justify-center ">
       <div className="flex flex-col text-center gap-10">
 
-        <div className="flex flex-col text-center gap-2">
+        <div className="flex flex-col text-center gap-2 pt-5">
           <h1 className="text-3xl text-[#B51621]">BIENVENUE SUR SAOE</h1>
           <h2 className="text-2xl text-[#B51621]">Le système de génération de plan de classe</h2>
         </div> 
