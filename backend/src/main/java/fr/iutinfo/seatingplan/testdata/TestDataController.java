@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,11 @@ public class TestDataController {
     }
 
     public record RoomForm(String name, int columns, int rows) {}
+    
+    @GetMapping("/room/{name}")
+    public Room roomByName(@PathVariable String name) {
+        return testData.room(name);
+    }
 
     @PostMapping("/room")
     public Room createRoom(@RequestBody RoomForm form) {

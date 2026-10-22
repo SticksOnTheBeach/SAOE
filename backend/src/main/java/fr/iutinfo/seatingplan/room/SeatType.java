@@ -4,5 +4,4 @@ public enum SeatType {
     AVAILABLE,
     FORBIDDEN,
     POWER_OUTLET,
-    NOSEAT
 }

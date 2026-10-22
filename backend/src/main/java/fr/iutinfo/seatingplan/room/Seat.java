@@ -1,10 +1,23 @@
 package fr.iutinfo.seatingplan.room;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+
+@Entity
 public class Seat {
-    private final String id;
-    private final int row;
-    private final int column;
-    private final SeatType type;
+	@Id
+	private String id;
+	@Column(name = "seat_row")
+	private int row;
+	@Column(name = "seat_column")
+	private int column;
+	@Enumerated(EnumType.STRING)
+	private SeatType type;
+	
+    protected Seat() {} 
 
     public Seat(String id, int row, int column, SeatType type) {
         this.id = id;

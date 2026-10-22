@@ -27,8 +27,9 @@ public class RoomController {
      * (cell number i is on row i / columns and column i % columns).
      * Without it, every seat is AVAILABLE. Other fields sent by the website are ignored.
      */
-    public record CreateRoomRequest(String name, int rows, int columns, List<SeatType> seats) {}
-
+    public record SeatRequest(int row, int column, SeatType type) {}
+    public record CreateRoomRequest(String name, int rows, int columns, List<SeatRequest> seats) {}
+    
     private final RoomRepository repository;
 
     public RoomController(RoomRepository repository) {
@@ -41,7 +42,7 @@ public class RoomController {
     }
 
     @GetMapping("/{id}")
-    public Room get(@PathVariable Long id) {
+    public Room get(@PathVariable String id) {
         return repository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
     }
 
@@ -53,22 +54,24 @@ public class RoomController {
         int rows = request.rows();
         int columns = request.columns();
         if (rows < 1 || columns < 1 || rows > MAX_SIZE || columns > MAX_SIZE) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Le nombre de lignes et de colonnes doit être compris entre 1 et " + MAX_SIZE);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Le nombre de lignes et de colonnes doit être compris entre 1 et " + MAX_SIZE);
         }
-        List<SeatType> types = request.seats();
-        if (types == null) {
-            types = Collections.nCopies(rows * columns, SeatType.AVAILABLE);
-        }
+     
 
+        String roomId = UUID.randomUUID().toString();
         List<Seat> cells = new ArrayList<>();
-        for (int i = 0; i < types.size(); i++) {
-            if (types.get(i) == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chaque place doit avoir un type");
+        if (request.seats() == null) {
+            // pas de liste envoyée : une place disponible sur chaque case, comme avant
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < columns; c++)
+                    cells.add(new Seat(roomId + "-r" + r + "c" + c, r, c, SeatType.AVAILABLE));
+        } else {
+            for (SeatRequest s : request.seats()) {
+                if (s == null || s.type() == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chaque place doit avoir un type");
+                }
+                cells.add(new Seat(roomId + "-r" + s.row() + "c" + s.column(), s.row(), s.column(), s.type()));
             }
-            int row = i / columns;
-            int column = i % columns;
-            cells.add(new Seat("r" + row + "c" + column, row, column, types.get(i)));
         }
 
         Room room;
