@@ -4,12 +4,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Entity // spécifie que la table correspond à une table de base de donnée, chaque objet de cette classe est enregistrée dans une base de donnée
 public class Room {
     private final String id;
-    private final String name;
-    private final int rows;
-    private final int columns;
-    private final List<Seat> seats;
+    private String name;
+    private int rows;
+    private int columns;
+    private List<Seat> seats;
 
     public Room(String id, String name, int rows, int columns, List<Seat> seats) {
     	validateGridRoom(rows, columns, seats);
@@ -21,6 +22,18 @@ public class Room {
         this.seats = List.copyOf(seats);
     }
 
+    public void setName(String name){
+        this.name = name;
+    }
+    public void setRows(int rows){
+        this.rows = rows;
+    }
+    public void setColumns(int columns){
+        this.columns = columns;
+    }
+    public void setSeats(List<Seat> seats){
+        this.seats = seats;
+    }
     public String getId() { return this.id; }
     public String getName() { return this.name; }
     public int getRows() { return this.rows; }

@@ -21,6 +21,13 @@ public class Seat {
     public boolean hasOutlet() {
         return this.type == SeatType.POWER_OUTLET;
     }
+    
+    public boolean isUsable() {
+    	if (!(this.type==SeatType.NOSEAT) && !(this.type==SeatType.FORBIDDEN)) {
+    		return true;
+    	}
+    	return false;
+    }
 
     // Direct neighbors share a side: left, right, front or back (not diagonal)
     public boolean isNeighborOf(Seat other) {

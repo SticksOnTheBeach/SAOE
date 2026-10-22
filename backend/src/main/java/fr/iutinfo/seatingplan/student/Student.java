@@ -1,7 +1,12 @@
 package fr.iutinfo.seatingplan.student;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.UUID;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 public class Student {
     @Id
@@ -22,7 +27,7 @@ public class Student {
         this.needsPowerOutlet = needsPowerOutlet;
     }
 
-    public String getId() { return this.id; }
+    public Long getId() { return this.id; }
     public String getFirstName() { return this.firstName; }
     public String getLastName() { return this.lastName; }
     public Group getGroupName() { return this.groupName; }

@@ -41,9 +41,8 @@ public class RoomController {
     }
 
     @GetMapping("/{id}")
-    public Room get(@PathVariable String id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Salle introuvable : " + id));
+    public Room get(@PathVariable Long id) {
+        return repository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
     }
 
     @PostMapping

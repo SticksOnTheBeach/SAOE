@@ -1,4 +1,4 @@
-package fr.unilim.iut;
+package fr.iutinfo.seatingplan.student.Exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-class StudentNotFoundAdvice {
+public class StudentNotFoundAdvice {
 
   @ExceptionHandler(StudentNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  String studentNotFoundHandler(StudentNotFoundException ex) {
+  public String studentNotFoundHandler(StudentNotFoundException ex) {
     return ex.getMessage();
   }
 }
