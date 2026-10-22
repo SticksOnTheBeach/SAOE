@@ -4,17 +4,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
 public class Student {
-    private final String id;
-    private final String firstName;
-    private final String lastName;
-    private final Group groupName;
-    private final boolean needsPowerOutlet;
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id; // en gros l'id est généré automatiquement, par rapport à l'ordre dans lequel celui est incrémenter dans la bdd
+    private String firstName;
+    private String lastName;
+
+    @Enumerated(EnumType.STRING)
+    private Group groupName; // pour que ça soit le groupe donc G1A et ps un entier qui dis qu'il s'agit du groupe 0 donc G1A, car sinon si on change l'ordre bah c'est relou donc voilà
+
+    private boolean needsPowerOutlet;
 
     public Student(String firstName, String lastName, Group groupName, boolean needsPowerOutlet) {
-        // For now the id only exists in our code. Later it will be
-        // replaced by the student's university student number,
-        // stored in the database.
-        this.id = UUID.randomUUID().toString();
         this.firstName = firstName;
         this.lastName = lastName;
         this.groupName = groupName;
@@ -25,6 +26,21 @@ public class Student {
     public String getFirstName() { return this.firstName; }
     public String getLastName() { return this.lastName; }
     public Group getGroupName() { return this.groupName; }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setGroup(Group group) {
+        this.groupName = group;
+    }
+
+    public void setNeedsPowerOutlet() {
+        this.needsPowerOutlet = true;
+    }
 
     // Without @JsonProperty, Jackson only serializes getXxx()/isXxx() methods
     @JsonProperty("needsPowerOutlet")
