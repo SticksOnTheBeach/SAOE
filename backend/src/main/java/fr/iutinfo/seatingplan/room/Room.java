@@ -50,7 +50,7 @@ public class Room {
 
     // places utilisables = celles qui ne sont pas interdites
     public int getUsableSeatCount() {
-        return (int) this.seats.stream().filter(seat -> seat.getType() != SeatType.FORBIDDEN).count();
+        return (int) seats.stream().filter(Seat::isUsable).count();
     }
 
     public int getOutletSeatCount() {

@@ -36,11 +36,13 @@ public class Seat {
     }
     
     public boolean isUsable() {
-    	if (!(this.type==SeatType.NOSEAT) && !(this.type==SeatType.FORBIDDEN)) {
+    	if (!(this.type==null) && !(this.type==SeatType.FORBIDDEN)) {
     		return true;
     	}
     	return false;
     }
+    
+    
 
     // Direct neighbors share a side: left, right, front or back (not diagonal)
     public boolean isNeighborOf(Seat other) {
