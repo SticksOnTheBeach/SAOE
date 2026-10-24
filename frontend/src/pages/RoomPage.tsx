@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 
 interface Room {                                                                                                                                       
   id: string                                                                                                                                           
@@ -10,11 +10,12 @@ interface Room {
 }     
 
 function RoomPage() {
+  const navigate = useNavigate()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const dialogRef2 = useRef<HTMLDialogElement>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [roomName, setRoomName] = useState('')
   const [planX, setPlanX] = useState('')
   const [planY, setPlanY] = useState("")
   const totalPlaces = Number(planX) * Number(planY)
@@ -40,6 +41,20 @@ function RoomPage() {
     setMessage('')
     setError('')
     setLoading(false)
+  }
+
+  function handleContinue() {
+    if (roomName.trim() === "" || Number(planX) <= 0 || Number(planY) <= 0) {
+      return
+    }
+    dialogRef.current?.close()
+    navigate('/ClassDisposition', {
+      state: {
+        name: roomName,
+        rows: Number(planX),
+        columns: Number(planY),
+      },
+    })
   }
 
   async function send(e: React.FormEvent<HTMLFormElement>) {
@@ -93,7 +108,7 @@ function RoomPage() {
               <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
               <div className="flex justify-between mt-20 invisible group-hover:visible">
                 <img onClick={() => dialogRef.current?.showModal()} src="/pen.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
-                <Link to="/ClassDisposition"><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
+                <Link to="/ClassDisposition" state={room}><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
               </div>
             </div>
           </div>
@@ -116,17 +131,17 @@ function RoomPage() {
                     <div className='flex flex-col pt-15 gap-5'>
                       <div>
                         <label htmlFor="name">Nom de la classe : </label>
-                        <input type="text" name="name" id="name" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='R50'/><br />
+                        <input value={roomName} onChange={(e) => setRoomName(e.target.value)} type="text" name="name" id="name" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='R50' required/><br />
                       </div>
 
                       <div>
                         <label htmlFor="columns">Nombre de colonnes : </label>
-                        <input value={planY} onChange={(e) => setPlanY(e.target.value)} type="number" name="columns" id="columns" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='10'/><br />
+                        <input value={planY} onChange={(e) => setPlanY(e.target.value)} type="number" name="columns" id="columns" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='7' required/><br />
                       </div>
 
                       <div>
                         <label htmlFor="rows">Nombre de lignes : </label>
-                        <input value={planX} onChange={(e) => setPlanX(e.target.value)} type="number" name="rows" id="rows" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='5'/><br />
+                        <input value={planX} onChange={(e) => setPlanX(e.target.value)} type="number" name="rows" id="rows" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='5' required/><br />
                       </div>
 
                       <p>Nombre de place total : 
@@ -135,16 +150,16 @@ function RoomPage() {
                     </div>
                   </div>
                   <div className='flex justify-center gap-15 pt-10'>
-                    <button onClick={() => { dialogRef2.current?.showModal(); dialogRef.current?.close() }} type="button" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Continuer</button>
+                    <button onClick={handleContinue} type="button" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Continuer</button>
                   </div>
                 </div>
 
                 <div className='flex-2 border-1 border-gray-300 rounded-md pt-3 overflow-auto'>
                   <h2 className='text-center text-2xl'>Apperçu du plan de classe <br /><span className='text-lg'>(les modifications se font à l'étape suivante)</span></h2>
                   <div className='flex flex-col gap-2 px-20 py-10'>
-                    {Array.from({ length: Number(planX) }, (_, column) => (
+                    {Array.from({ length: Math.max(0, Number(planX)) }, (_, column) => (
                       <div key={column} className='flex gap-2'>
-                        {Array.from({ length: Number(planY) }, (_, row) => (
+                        {Array.from({ length: Math.max(0, Number(planY)) }, (_, row) => (
                           <div key={row} className="flex-1 group flex items-center justify-center aspect-square rounded-md bg-gray-200"></div>
                         ))}
                       </div>
@@ -152,40 +167,6 @@ function RoomPage() {
                   </div>
                 </div>
               </div>
-          </div>
-        </dialog>
-
-        <dialog ref={dialogRef2} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
-          <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
-            <div className='grid grid-cols-3 items-center'>
-              <h1 className='justify-self-start text-2xl'>Configuration de la salle</h1>
-              <div className='flex gap-2'>
-                <button onClick={() => {dialogRef2.current?.close(); dialogRef.current?.showModal()}} type='button' className='justify-self-center text-2xl hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Etape précédente</button>
-                <button type='submit' className='justify-self-center text-2xl hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Valider la salle</button>
-              </div>
-              <img onClick={() => dialogRef2.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
-            </div>
-            <div className='text-center pt-2'>
-              {message && (
-                <p className="rounded-md py-3 text-center text-xl">
-                  {message}
-                </p>
-              )}
-              {error && (
-                <p className="">
-                  {error}
-                </p>
-              )}
-            </div>
-            <div className='flex flex-1 min-h-0 overflow-auto flex-col gap-2 px-20 py-10 border-1 border-gray-300 rounded-md mt-5'>
-              {Array.from({ length: Number(planX) }, (_, column) => (
-                <div key={column} className='flex gap-2'>
-                  {Array.from({ length: Number(planY) }, (_, row) => (
-                    <div key={row} className="flex-1 group flex items-center justify-center aspect-square rounded-md bg-gray-200 hover:bg-gray-300"></div>
-                  ))}
-                </div>
-              ))}
-            </div>
           </div>
         </dialog>
       </form>
