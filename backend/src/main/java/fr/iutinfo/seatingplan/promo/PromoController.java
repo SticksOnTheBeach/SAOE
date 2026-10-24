@@ -57,7 +57,7 @@ public class PromoController {
     @GetMapping("/{id}/students")
     public List<Student> studentsOf(@PathVariable Long id) {
         if (!promos.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Promo introuvable : " + id);
+            throw new PromoNotFoundException(id);
         }
         return students.findByPromoId(id);
     }
