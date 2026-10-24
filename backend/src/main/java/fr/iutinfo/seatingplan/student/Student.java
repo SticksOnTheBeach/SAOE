@@ -2,12 +2,15 @@ package fr.iutinfo.seatingplan.student;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.iutinfo.seatingplan.promo.Promo;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Student {
@@ -16,6 +19,10 @@ public class Student {
     private Long id; // en gros l'id est généré automatiquement, par rapport à l'ordre dans lequel celui est incrémenter dans la bdd
     private String firstName;
     private String lastName;
+    
+    @ManyToOne
+    @JoinColumn(name = "promo_id")
+    private Promo promo;
 
     @Enumerated(EnumType.STRING)
     private Group groupName; // pour que ça soit le groupe donc G1A et ps un entier qui dis qu'il s'agit du groupe 0 donc G1A, car sinon si on change l'ordre bah c'est relou donc voilà
@@ -24,11 +31,12 @@ public class Student {
     
     protected Student() {}
     
-    public Student(String firstName, String lastName, Group groupName, boolean needsPowerOutlet) {
+    public Student(String firstName, String lastName, Group groupName, boolean needsPowerOutlet, Promo promo) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.groupName = groupName;
         this.needsPowerOutlet = needsPowerOutlet;
+        this.promo = promo;
     }
 
     public Long getId() { return this.id; }
