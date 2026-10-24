@@ -1,10 +1,10 @@
 package fr.iutinfo.seatingplan.promo;
 
-public class PromoNotFoundController extends RuntimeException {
+public class PromoNotFoundException extends RuntimeException {
 	
 	private static final long serialVersionUID = 1L;
 
-	public PromoNotFoundController(Long id) {
+	public PromoNotFoundException(Long id) {
         super("Could not find promo : " + id);
     }
 	

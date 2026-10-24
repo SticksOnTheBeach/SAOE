@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class PromoNotFoundAdvice {
 
-  @ExceptionHandler(PromoNotFoundController.class)
+  @ExceptionHandler(PromoNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  public String studentNotFoundHandler(PromoNotFoundController ex) {
+  public String studentNotFoundHandler(PromoNotFoundException ex) {
     return ex.getMessage();
   }
 }

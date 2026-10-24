@@ -39,7 +39,7 @@ public class PromoController {
     
     @GetMapping("/{id}")
     public Promo one(@PathVariable Long id) {
-        return promos.findById(id).orElseThrow(() -> new PromoNotFoundController(id));
+        return promos.findById(id).orElseThrow(() -> new PromoNotFoundException(id));
     }
 
     @PostMapping
