@@ -8,16 +8,16 @@ import jakarta.persistence.Id;
 
 @Entity
 public class Seat {
-	@Id
-	private String id;
-	@Column(name = "seat_row")
-	private int row;
-	@Column(name = "seat_column")
-	private int column;
-	@Enumerated(EnumType.STRING)
-	private SeatType type;
-	
-    protected Seat() {} 
+    @Id
+    private String id;
+    @Column(name = "seat_row")
+    private int row;
+    @Column(name = "seat_column")
+    private int column;
+    @Enumerated(EnumType.STRING)
+    private SeatType type;
+
+    protected Seat() {}
 
     public Seat(String id, int row, int column, SeatType type) {
         this.id = id;
@@ -31,18 +31,16 @@ public class Seat {
     public int getColumn() { return this.column; }
     public SeatType getType() { return this.type; }
 
+    // Utilisé par Room.update : on change le type d'une place existante sans la recréer
+    public void setType(SeatType type) { this.type = type; }
+
     public boolean hasOutlet() {
         return this.type == SeatType.POWER_OUTLET;
     }
-    
+
     public boolean isUsable() {
-    	if (!(this.type==null) && !(this.type==SeatType.FORBIDDEN)) {
-    		return true;
-    	}
-    	return false;
+        return this.type != SeatType.FORBIDDEN;
     }
-    
-    
 
     // Direct neighbors share a side: left, right, front or back (not diagonal)
     public boolean isNeighborOf(Seat other) {
