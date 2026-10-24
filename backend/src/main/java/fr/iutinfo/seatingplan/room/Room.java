@@ -1,8 +1,10 @@
 package fr.iutinfo.seatingplan.room;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
@@ -25,7 +27,8 @@ public class Room {
     @Column(name = "room_columns")
     private int columns;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    // orphanRemoval : une place retirée de la liste est supprimée de la base
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "room_id")
     private List<Seat> seats = new ArrayList<>();
 
@@ -50,11 +53,52 @@ public class Room {
 
     // places utilisables = celles qui ne sont pas interdites
     public int getUsableSeatCount() {
-        return (int) this.seats.stream().filter(seat -> seat.getType() != SeatType.FORBIDDEN).count();
+        return (int) seats.stream().filter(Seat::isUsable).count();
     }
 
     public int getOutletSeatCount() {
-        return (int) this.seats.stream().filter(seat -> seat.getType() == SeatType.POWER_OUTLET).count();
+        return (int) this.seats.stream().filter(Seat::hasOutlet).count();
+    }
+
+    /**
+     * Modifie la salle en une seule fois (nom, dimensions, places).
+     * Les places qui existent déjà à la même case sont modifiées sur place (même id),
+     * celles qui n'y sont plus sont supprimées, les nouvelles sont ajoutées.
+     * Tout est vérifié avant de changer quoi que ce soit.
+     */
+    public void update(String name, int rows, int columns, List<Seat> newSeats) {
+        validateGridRoom(rows, columns, newSeats);
+
+        this.name = name;
+        this.rows = rows;
+        this.columns = columns;
+
+        Map<String, Seat> existingByCell = new HashMap<>();
+        for (Seat seat : this.seats) {
+            existingByCell.put(cellKey(seat.getRow(), seat.getColumn()), seat);
+        }
+
+        List<Seat> result = new ArrayList<>();
+        for (Seat wanted : newSeats) {
+            Seat existing = existingByCell.get(cellKey(wanted.getRow(), wanted.getColumn()));
+            if (existing != null) {
+                existing.setType(wanted.getType());
+                result.add(existing);
+            } else {
+                result.add(wanted);
+            }
+        }
+
+        this.seats.retainAll(result);
+        for (Seat seat : result) {
+            if (!this.seats.contains(seat)) {
+                this.seats.add(seat);
+            }
+        }
+    }
+
+    private static String cellKey(int row, int column) {
+        return row + "," + column;
     }
 
     private static void validateGridRoom(int rows, int columns, List<Seat> seats) {
@@ -69,7 +113,7 @@ public class Room {
                 throw new IllegalArgumentException("Seat " + seat.getId() + " is outside the room");
             }
             // deux places ne peuvent pas partager la même case
-            if (!usedCells.add(seat.getRow() + "," + seat.getColumn())) {
+            if (!usedCells.add(cellKey(seat.getRow(), seat.getColumn()))) {
                 throw new IllegalArgumentException("Two seats share the cell of seat " + seat.getId());
             }
         }

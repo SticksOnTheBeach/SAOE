@@ -1,8 +1,10 @@
 package fr.iutinfo.seatingplan.student;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-
-interface StudentRepository extends JpaRepository<Student, Long> {
+public interface StudentRepository extends JpaRepository<Student, Long> {
+	List<Student> findByPromoId(Long promoId);
 
 }

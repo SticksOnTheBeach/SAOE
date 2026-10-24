@@ -1,13 +1,18 @@
 package fr.iutinfo.seatingplan.placement;
 
+import org.junit.jupiter.api.Test;
+
 import ai.timefold.solver.test.api.score.stream.ConstraintVerifier;
+import fr.iutinfo.seatingplan.promo.Promo;
 import fr.iutinfo.seatingplan.room.Seat;
 import fr.iutinfo.seatingplan.room.SeatType;
 import fr.iutinfo.seatingplan.student.Group;
 import fr.iutinfo.seatingplan.student.Student;
-import org.junit.jupiter.api.Test;
 
 class SeatingConstraintProviderTest {
+	
+    // Une promo commune à tous les étudiants des tests
+    private static final Promo PROMO = new Promo("BUT1");
 
     private final ConstraintVerifier<SeatingConstraintProvider, SeatingPlan> constraintVerifier =
             ConstraintVerifier.build(new SeatingConstraintProvider(), SeatingPlan.class, SeatAssignment.class);
@@ -17,11 +22,11 @@ class SeatingConstraintProviderTest {
     }
 
     private static Student student(Group group) {
-        return new Student("First", "Last", group, false);
+        return new Student("First", "Last", group, false, PROMO);
     }
 
     private static Student studentNeedingOutlet() {
-        return new Student("First", "Last", Group.G1A, true);
+        return new Student("First", "Last", Group.G1A, true, PROMO);
     }
 
     // Forbidden seat
