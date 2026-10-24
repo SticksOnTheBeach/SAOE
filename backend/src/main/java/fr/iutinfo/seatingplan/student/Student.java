@@ -21,7 +21,9 @@ public class Student {
     private Group groupName; // pour que ça soit le groupe donc G1A et ps un entier qui dis qu'il s'agit du groupe 0 donc G1A, car sinon si on change l'ordre bah c'est relou donc voilà
 
     private boolean needsPowerOutlet;
-
+    
+    protected Student() {}
+    
     public Student(String firstName, String lastName, Group groupName, boolean needsPowerOutlet) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -41,13 +43,14 @@ public class Student {
         this.lastName = lastName;
     }
 
-    public void setGroup(Group group) {
-        this.groupName = group;
+    public void setGroupName(Group groupName) { 
+    	this.groupName = groupName; 
     }
-
-    public void setNeedsPowerOutlet() {
-        this.needsPowerOutlet = true;
+    public void setNeedsPowerOutlet(boolean needsPowerOutlet) { 
+    	this.needsPowerOutlet = needsPowerOutlet; 
     }
+    
+    
 
     // Without @JsonProperty, Jackson only serializes getXxx()/isXxx() methods
     @JsonProperty("needsPowerOutlet")

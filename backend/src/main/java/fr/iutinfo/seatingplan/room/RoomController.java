@@ -1,12 +1,12 @@
 package fr.iutinfo.seatingplan.room;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +35,8 @@ public class RoomController {
     public RoomController(RoomRepository repository) {
         this.repository = repository;
     }
+    
+    
 
     @GetMapping
     public List<Room> list() {
@@ -45,7 +47,16 @@ public class RoomController {
     public Room get(@PathVariable String id) {
         return repository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
     }
-
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        if (!repository.existsById(id)) {
+            throw new RoomNotFoundException(id);
+        }
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+    
     @PostMapping
     public ResponseEntity<Room> create(@RequestBody CreateRoomRequest request) {
         if (request == null || request.name() == null || request.name().isBlank()) {
@@ -55,6 +66,12 @@ public class RoomController {
         int columns = request.columns();
         if (rows < 1 || columns < 1 || rows > MAX_SIZE || columns > MAX_SIZE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Le nombre de lignes et de colonnes doit être compris entre 1 et " + MAX_SIZE);
+        }
+
+        String name = request.name().trim();
+        if (repository.existsByNameIgnoreCase(name)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Une salle nommée \"" + name + "\" existe déjà");
         }
      
 
@@ -77,7 +94,7 @@ public class RoomController {
         Room room;
         try {
             // The Room constructor already checks the grid (number of seats, duplicates, outside the room)
-            room = new Room(UUID.randomUUID().toString(), request.name().trim(), rows, columns, cells);
+            room = new Room(roomId, request.name().trim(), rows, columns, cells);
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }

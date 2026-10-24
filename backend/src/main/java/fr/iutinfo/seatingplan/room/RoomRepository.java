@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * et donc la gestion des données sera faites via la BDD que le front implémentera
  */
 public interface RoomRepository extends JpaRepository<Room, String> {
-
+	
+	boolean existsByNameIgnoreCase(String name);
 }
