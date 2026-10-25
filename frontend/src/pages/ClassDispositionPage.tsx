@@ -11,8 +11,15 @@ interface RoomState {
 
 function ClassDispositionPage() {
   const dialogRefHelp = useRef<HTMLDialogElement>(null)
+  const dialogChoicePlacement = useRef<HTMLDialogElement>(null)
   const location = useLocation()
   const data = location.state as RoomState | null
+  const [isMultiple, setIsMultiple] = useState(false)
+  
+  const handleSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsMultiple(e.target.checked)
+  } 
+
 
   if (!data) {
     return (
@@ -28,6 +35,17 @@ function ClassDispositionPage() {
         <div>
           <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1><img onClick={() => dialogRefHelp.current?.showModal()} src="/question-circle.svg" alt="" className='w-5 h-auto'/></div>
           <h2>Salle {data.name}</h2>
+        </div>
+        <div>
+          <h2 className='text-center text-xl pb-2'>Type de sélection</h2>
+          <div className='flex gap-5 p-2 rounded-md'>
+            <h3 className={`pt-1 text-l ${isMultiple ? 'font-normal' : 'font-bold'}`}>Simple</h3>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input checked={isMultiple} onChange={handleSwitch} type="checkbox" className="sr-only peer" />
+              <div className="group peer bg-white rounded-full duration-300 w-16 h-8 ring-2 after:duration-300 after:bg-gray-400 peer-checked:after:bg-gray-400 after:rounded-full after:absolute after:h-6 after:w-6 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-checked:after:translate-x-8 peer-hover:after:scale-95"></div>
+            </label>
+            <h3 className={`pt-1 text-l ${isMultiple ? 'font-bold' : 'font-normal'}`} id='multiple'>Multiple</h3>
+          </div>
         </div>
         <div className='flex gap-5'>
           <div className='flex gap-1'>
@@ -64,6 +82,7 @@ function ClassDispositionPage() {
           </div>
         ))}
       </div>
+      <button>Test</button>
 
       <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-3/4 rounded-md bg-transparent backdrop:bg-black/50">
         <div className='bg-gray-200 p-5'>
@@ -77,13 +96,22 @@ function ClassDispositionPage() {
             <br /><span className='font-bold'>En cliquant sur une case, vous pourrez changer le status d'un emplacement avec les choix ci-dessus.</span>
           </p>
           <h2 className='pt-10 font-bold text-xl pb-2'>Mode de sélection</h2>
-          <p>2 modes de sélection sont possibles : 
+          <p>2 modes de sélection sont possibles grace au switch en haut de la page: 
             <br /><span className='font-bold'>Selection unique</span>
             <br />Vous cliquez sur l'emplacement désiré, un menu s'ouvre et vous choisissez le status de cet emplacement.
             <br /><span className='font-bold '>Selection multiple</span>
-            <br />Vous sélectionnez un ou plusieurs emplacements 
+            <br />Vous sélectionnez un ou plusieurs emplacements puis une fois la sélection faite, vous choisissez dans le menu déroulant en haut de la page le status de l'emplacement.
           </p>
+          <br />
+          <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "valider la salle" en bas de la page pour sauvegarder la salle.</h2>
         </div>
+      </dialog>
+
+      <dialog ref={dialogChoicePlacement} className="m-auto w-3/4 h-3/4 rounded-md bg-transparent backdrop:bg-black/50">
+        <p className='bg-[#AAD690]'>Disponible</p>
+        <p className='bg-[#A84747]'>Interdite</p>
+        <p className='bg-[#EDEB87]'>Avec Prise</p>
+        <p className='bg-[#FCFCFC]'>Couloir</p>
       </dialog>
     </div>
   )
