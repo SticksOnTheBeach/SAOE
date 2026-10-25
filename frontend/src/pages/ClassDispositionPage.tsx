@@ -2,11 +2,18 @@ import { useLocation } from 'react-router'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 
+interface SeatData {
+  row: number
+  column: number
+  type: 'AVAILABLE' | 'FORBIDDEN' | 'POWER_OUTLET'
+}
+
 interface RoomState {
   id?: string
   name: string
   rows: number
   columns: number
+  seats?: SeatData[]
 }
 
 type CellStatus = 'disponible' | 'interdite' | 'prise' | 'couloir'
@@ -18,16 +25,56 @@ const STATUS_COLORS: Record<CellStatus, string> = {
 }
 
 function ClassDispositionPage() {
+  const navigate = useNavigate()
   const dialogRefHelp = useRef<HTMLDialogElement>(null)
   const dialogChoicePlacementSingle = useRef<HTMLDialogElement>(null)
   const location = useLocation()
   const data = location.state as RoomState | null
   const [isMultiple, setIsMultiple] = useState(false)
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const [selectedCell, setSelectedCell] = useState<{ row: number; column: number } | null>(null)
 
   const [cellStatuses, setCellStatuses] = useState<Record<string, CellStatus>>({})
+
+  // Si on ouvre une salle existante (qui a un id), on récupère son plan existant depuis le backend
+  useEffect(() => {
+    if (!data?.id) return
+    fetch(`/api/rooms/${data.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((room: RoomState | null) => {
+        if (!room?.seats) return
+        const initialStatuses: Record<string, CellStatus> = {}
+        const seatMap = new Map<string, SeatData['type']>()
+        for (const s of room.seats) {
+          seatMap.set(`${s.row}-${s.column}`, s.type)
+        }
+        for (let r = 0; r < Number(data.rows); r++) {
+          for (let c = 0; c < Number(data.columns); c++) {
+            const key = `${r}-${c}`
+            const seatType = seatMap.get(key)
+            if (!seatType) {
+              // Si la case était dans l'ancienne grille mais absente de seats => c'était un couloir
+              if (r < room.rows && c < room.columns) {
+                initialStatuses[key] = 'couloir'
+              } else {
+                initialStatuses[key] = 'disponible'
+              }
+            } else if (seatType === 'FORBIDDEN') {
+              initialStatuses[key] = 'interdite'
+            } else if (seatType === 'POWER_OUTLET') {
+              initialStatuses[key] = 'prise'
+            } else {
+              initialStatuses[key] = 'disponible'
+            }
+          }
+        }
+        setCellStatuses(initialStatuses)
+      })
+      .catch((err) => console.error('Erreur chargement salle :', err))
+  }, [data?.id, data?.rows, data?.columns])
   
   const handleSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsMultiple(e.target.checked)
@@ -52,6 +99,60 @@ function ClassDispositionPage() {
       }))
     }
     dialogChoicePlacementSingle.current?.close()
+  }
+
+  async function saveRoom() {
+    if (!data) return
+    setError('')
+    setLoading(true)
+
+    const seats: SeatData[] = []
+
+    // On parcourt toutes les cases de la grille (lignes × colonnes)
+    for (let r = 0; r < Number(data.rows); r++) {
+      for (let c = 0; c < Number(data.columns); c++) {
+        // Par défaut, une case non modifiée est 'disponible'
+        const status = cellStatuses[`${r}-${c}`] ?? 'disponible'
+
+        // Un couloir n'est pas envoyé dans "seats" (c'est un trou dans la grille pour le backend)
+        if (status === 'couloir') continue
+
+        const type: SeatData['type'] =
+          status === 'interdite'
+            ? 'FORBIDDEN'
+            : status === 'prise'
+              ? 'POWER_OUTLET'
+              : 'AVAILABLE'
+
+        seats.push({ row: r, column: c, type })
+      }
+    }
+
+    const isEdit = Boolean(data.id)
+    try {
+      const res = await fetch(isEdit ? `/api/rooms/${data.id}` : '/api/rooms', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          rows: Number(data.rows),
+          columns: Number(data.columns),
+          seats,
+        }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(body?.message ?? 'Erreur ' + res.status)
+      }
+
+      navigate('/Room')
+    } catch (err) {
+      console.error(err)
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
 
@@ -126,8 +227,17 @@ function ClassDispositionPage() {
           </div>
         ))}
       </div>
+      {error && (
+        <p className="text-center text-red-600 font-bold pb-3">{error}</p>
+      )}
       <div className='flex justify-center'>
-        <button className='text-center text-white border-2 border-gray-900 px-10 py-2 rounded-md bg-[#B51621] hover:bg-[#D43B46] hover:border-gray-700'>Sauvgarder la salle {data.name}</button>
+        <button
+          onClick={saveRoom}
+          disabled={loading}
+          className='cursor-pointer text-center text-white border-2 border-gray-900 px-10 py-2 rounded-md bg-[#B51621] hover:bg-[#D43B46] hover:border-gray-700'
+        >
+          {loading ? 'Sauvegarde en cours…' : `Sauvegarder la salle ${data.name}`}
+        </button>
       </div>
 
       <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-fit rounded-md bg-transparent backdrop:bg-black/50">
