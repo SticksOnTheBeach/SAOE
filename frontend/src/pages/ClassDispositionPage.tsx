@@ -241,7 +241,7 @@ function ClassDispositionPage() {
       </div>
 
       <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-fit rounded-md bg-transparent backdrop:bg-black/50">
-        <div className='bg-gray-200 p-5'>
+        <div className='bg-gray-200/90 p-5'>
           <div className='flex justify-between'>
             <h1 className='text-3xl text-center pb-5'>Comment utiliser ce configurateur ?</h1>
             <img onClick={() => dialogRefHelp.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto cursor-pointer'/>

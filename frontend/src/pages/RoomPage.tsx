@@ -34,6 +34,59 @@ function RoomPage() {
     }
   }
 
+  async function sendRoom(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const isEdit = editingId !== null
+
+    setMessage('')
+    setError('')
+    setLoading(true)
+
+    try {
+      const res = await fetch(isEdit ? `/api/rooms/${editingId}` : '/api/rooms', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: planName,
+          columns: Number(planY),
+          rows: Number(planX),
+        }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(body?.message ?? 'Erreur ' + res.status)
+      }
+      const saved: Room = await res.json()
+      await fetchRooms()
+
+      setMessage(
+          isEdit
+              ? `Salle ${saved.name} modifiée : ${saved.usableSeatCount} places disponibles`
+              : `Création de la salle ${saved.name} avec ${saved.usableSeatCount} places`
+      )
+    } catch (err) {
+      console.error(err)
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function deleteRoom(id: string) {
+    try {
+      const res = await fetch(`/api/rooms/${id}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        await fetchRooms()
+      }
+    } catch (err) {
+      console.error('Erreur lors de la suppression : ', err)
+    }
+  }
+
   useEffect(() => {
     fetchRooms()
   }, [])
@@ -78,46 +131,6 @@ function RoomPage() {
     })
   }
 
-  async function send(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const isEdit = editingId !== null
-
-    setMessage('')
-    setError('')
-    setLoading(true)
-
-    try {
-      const res = await fetch(isEdit ? `/api/rooms/${editingId}` : '/api/rooms', {
-        method: isEdit ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: planName,
-          columns: Number(planY),
-          rows: Number(planX),
-        }),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => null)
-        throw new Error(body?.message ?? 'Erreur ' + res.status)
-      }
-      const saved: Room = await res.json()
-      await fetchRooms()
-
-      setMessage(
-          isEdit
-              ? `Salle ${saved.name} modifiée : ${saved.usableSeatCount} places disponibles`
-              : `Création de la salle ${saved.name} avec ${saved.usableSeatCount} places`
-      )
-    } catch (err) {
-      console.error(err)
-      setError(err instanceof Error ? err.message : String(err))
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
       <div>
         <div className="grid grid-cols-5 gap-10 px-20 py-10">
@@ -129,16 +142,17 @@ function RoomPage() {
                 <div>
                   <p className="text-4xl text-center text-[#4D4D4D] select-none">{room.name}</p>
                   <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
-                  <div className="flex justify-between mt-20 invisible group-hover:visible">
+                  <div className="flex justify-between mt-20 invisible group-hover:visible gap-2">
                     <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
                     <Link to="/ClassDisposition" state={room}><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
+                    <img onClick={(e) => { e.stopPropagation(); deleteRoom(room.id) }} src="/trash.svg" alt="" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
                   </div>
                 </div>
               </div>
           ))}
         </div>
 
-        <form onSubmit={send} className='flex h-full flex-col'>
+        <form onSubmit={sendRoom} className='flex h-full flex-col'>
           <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
             <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
               <div className='grid grid-cols-3 items-center'>
