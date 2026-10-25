@@ -9,16 +9,50 @@ interface RoomState {
   columns: number
 }
 
+type CellStatus = 'disponible' | 'interdite' | 'prise' | 'couloir'
+const STATUS_COLORS: Record<CellStatus, string> = {
+  disponible: 'bg-[#AAD690]',
+  interdite: 'bg-[#A84747]',
+  prise: 'bg-[#EDEB87]',
+  couloir: 'bg-[#FCFCFC] border-2 border-[#F0F0F0]',
+}
+
 function ClassDispositionPage() {
   const dialogRefHelp = useRef<HTMLDialogElement>(null)
-  const dialogChoicePlacement = useRef<HTMLDialogElement>(null)
+  const dialogChoicePlacementSingle = useRef<HTMLDialogElement>(null)
   const location = useLocation()
   const data = location.state as RoomState | null
   const [isMultiple, setIsMultiple] = useState(false)
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 })
+
+  const [selectedCell, setSelectedCell] = useState<{ row: number; column: number } | null>(null)
+
+  const [cellStatuses, setCellStatuses] = useState<Record<string, CellStatus>>({})
   
   const handleSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsMultiple(e.target.checked)
-  } 
+  }
+
+  const handleCellClick = (e: React.MouseEvent<HTMLDivElement>, row: number, column: number) => {
+    if (!isMultiple) {
+      setSelectedCell({ row, column })
+      setMenuPos({ x: e.clientX, y: e.clientY })
+      dialogChoicePlacementSingle.current?.showModal()
+    } else {
+      setSelectedCell({ row, column })
+    }
+  }
+
+  const handleSelectStatus = (status: CellStatus) => {
+    if (selectedCell) {
+      const key = `${selectedCell.row}-${selectedCell.column}`
+      setCellStatuses((prev) => ({
+        ...prev,
+        [key]: status,
+      }))
+    }
+    dialogChoicePlacementSingle.current?.close()
+  }
 
 
   if (!data) {
@@ -76,17 +110,32 @@ function ClassDispositionPage() {
         {Array.from({ length: Number(data.rows) }, (_, row) => (
           <div key={row} className='flex gap-2'>
             <p className='w-8 flex items-center justify-center'>{row+1}</p>
-            {Array.from({ length: Number(data.columns) }, (_, column) => (
-              <div key={column} className="flex-1 flex items-center justify-center aspect-square rounded-md bg-gray-200"></div>
-            ))}
+            {Array.from({ length: Number(data.columns) }, (_, column) => {
+              // On récupère le statut de la case "row-column" (ou gris par défaut si pas encore modifiée)
+              const status = cellStatuses[`${row}-${column}`]
+              const colorClass = status ? STATUS_COLORS[status] : 'bg-gray-200'
+
+              return (
+                <div
+                  key={column}
+                  onClick={(e) => handleCellClick(e, row, column)}
+                  className={`cursor-pointer flex-1 flex items-center justify-center aspect-square rounded-md ${colorClass}`}
+                ></div>
+              )
+            })}
           </div>
         ))}
       </div>
-      <button>Test</button>
+      <div className='flex justify-center'>
+        <button className='text-center text-white border-2 border-gray-900 px-10 py-2 rounded-md bg-[#B51621] hover:bg-[#D43B46] hover:border-gray-700'>Sauvgarder la salle {data.name}</button>
+      </div>
 
-      <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-3/4 rounded-md bg-transparent backdrop:bg-black/50">
+      <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-fit rounded-md bg-transparent backdrop:bg-black/50">
         <div className='bg-gray-200 p-5'>
-          <h1 className='text-3xl text-center pb-5'>Comment utiliser ce configurateur ?</h1>
+          <div className='flex justify-between'>
+            <h1 className='text-3xl text-center pb-5'>Comment utiliser ce configurateur ?</h1>
+            <img onClick={() => dialogRefHelp.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto cursor-pointer'/>
+          </div>
           <h2 className='pt-5 font-bold text-xl pb-2'>Status des emplacements</h2>
           <p>Chaquns de ces carrés représente un emplacement. Il peut être : 
             <br /> - Une place disponible : Une place qui sera attribuée à un élève sans condition particulière
@@ -103,15 +152,25 @@ function ClassDispositionPage() {
             <br />Vous sélectionnez un ou plusieurs emplacements puis une fois la sélection faite, vous choisissez dans le menu déroulant en haut de la page le status de l'emplacement.
           </p>
           <br />
-          <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "valider la salle" en bas de la page pour sauvegarder la salle.</h2>
+          <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "Sauvgarder la salle" en bas de la page pour sauvegarder la salle.</h2>
         </div>
       </dialog>
 
-      <dialog ref={dialogChoicePlacement} className="m-auto w-3/4 h-3/4 rounded-md bg-transparent backdrop:bg-black/50">
-        <p className='bg-[#AAD690]'>Disponible</p>
-        <p className='bg-[#A84747]'>Interdite</p>
-        <p className='bg-[#EDEB87]'>Avec Prise</p>
-        <p className='bg-[#FCFCFC]'>Couloir</p>
+      <dialog
+        ref={dialogChoicePlacementSingle}
+        onClick={(e) => { if (e.target === dialogChoicePlacementSingle.current) dialogChoicePlacementSingle.current?.close() }}
+        style={{ left: `${menuPos.x}px`, top: `${menuPos.y}px` }}
+        className="m-0 fixed w-50 h-min rounded-md bg-transparent backdrop:bg-black/50"
+      >
+        <div className='p-2 bg-gray-600/75'>
+          <p className='text-center pt-2 pb-4 text-xl text-white'>Statut du placement</p>
+          <div className='rounded-md cursor-pointer'>
+            <p onClick={() => handleSelectStatus('disponible')} className='bg-[#AAD690] hover:bg-[#BFE3A8] p-2'>Disponible</p>
+            <p onClick={() => handleSelectStatus('interdite')} className='bg-[#A84747] hover:bg-[#B56060] p-2 text-white'>Interdite</p>
+            <p onClick={() => handleSelectStatus('prise')} className='bg-[#EDEB87] hover:bg-[#FAF8B1] p-2'>Avec Prise</p>
+            <p onClick={() => handleSelectStatus('couloir')} className='bg-[#EBEBEB] hover:bg-[#F5F5F5] p-2'>Couloir</p>
+          </div>
+        </div>
       </dialog>
     </div>
   )
