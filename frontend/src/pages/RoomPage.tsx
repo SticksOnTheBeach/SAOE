@@ -12,6 +12,7 @@ interface Room {
 function RoomPage() {
   const navigate = useNavigate()
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const dialogConfirm = useRef<HTMLDialogElement>(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,6 +20,7 @@ function RoomPage() {
   const [planY, setPlanY] = useState("")
   const [planName, setPlanName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const totalPlaces = Number(planX) * Number(planY)
   const [rooms, setRooms] = useState<Room[]>([])
 
@@ -74,9 +76,10 @@ function RoomPage() {
     }
   }
 
-  async function deleteRoom(id: string) {
+  async function deleteRoom() {
+    if (!deletingId) return
     try {
-      const res = await fetch(`/api/rooms/${id}`, {
+      const res = await fetch(`/api/rooms/${deletingId}`, {
         method: 'DELETE',
       })
       if (res.ok) {
@@ -84,6 +87,9 @@ function RoomPage() {
       }
     } catch (err) {
       console.error('Erreur lors de la suppression : ', err)
+    } finally {
+      setDeletingId(null)
+      dialogConfirm.current?.close()
     }
   }
 
@@ -145,7 +151,7 @@ function RoomPage() {
                   <div className="flex justify-between mt-20 invisible group-hover:visible gap-2">
                     <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
                     <Link to="/ClassDisposition" state={room}><img src="/file-earmark-text.svg" alt="" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
-                    <img onClick={(e) => { e.stopPropagation(); deleteRoom(room.id) }} src="/trash.svg" alt="" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
+                    <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
                   </div>
                 </div>
               </div>
@@ -207,6 +213,21 @@ function RoomPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          </dialog>
+
+          <dialog ref={dialogConfirm} onClose={resetDialog} className="m-auto w-[45%] h-[17%] rounded-md bg-transparent backdrop:bg-black/50">
+            <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+              <div className='flex justify-between'>
+                <div>
+                  <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer cette salle ?</h1>
+                  <div className='pt-5 flex gap-5'>
+                    <button type="button" onClick={deleteRoom} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
+                    <button type="button" onClick={() => dialogConfirm.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
+                  </div>
+                </div>
+                <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
               </div>
             </div>
           </dialog>
