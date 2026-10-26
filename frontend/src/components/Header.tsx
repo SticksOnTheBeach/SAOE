@@ -31,10 +31,10 @@ function Header() {
           <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 text-black">
             <ul className="py-1">
               <li>
-                <Link to="/" className="block px-4 py-2 hover:bg-gray-100">Mon Profil</Link>
+                <Link to="/Profile" className="block px-4 py-2 hover:bg-gray-100">Mon Profil</Link>
               </li>
               <li>
-                <Link to="/" className="block px-4 py-2 hover:bg-gray-100">Paramètres</Link>
+                <Link to="/Settings" className="block px-4 py-2 hover:bg-gray-100">Paramètres</Link>
               </li>
               <hr className="border-gray-200" />
               <li>
