@@ -23,6 +23,7 @@ function RoomPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const totalPlaces = Number(planX) * Number(planY)
   const [rooms, setRooms] = useState<Room[]>([])
+  const [selectedCells, setSelectedCells] = useState<string[]>([])
 
   async function fetchRooms() {
     try {

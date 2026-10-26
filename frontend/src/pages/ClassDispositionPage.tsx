@@ -34,12 +34,10 @@ function ClassDispositionPage() {
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
   const [selectedCell, setSelectedCell] = useState<{ row: number; column: number } | null>(null)
-
+  const [selectedCells, setSelectedCells] = useState<string[]>([])
   const [cellStatuses, setCellStatuses] = useState<Record<string, CellStatus>>({})
 
-  // Si on ouvre une salle existante (qui a un id), on récupère son plan existant depuis le backend
   useEffect(() => {
     if (!data?.id) return
     fetch(`/api/rooms/${data.id}`)
@@ -56,7 +54,6 @@ function ClassDispositionPage() {
             const key = `${r}-${c}`
             const seatType = seatMap.get(key)
             if (!seatType) {
-              // Si la case était dans l'ancienne grille mais absente de seats => c'était un couloir
               if (r < room.rows && c < room.columns) {
                 initialStatuses[key] = 'couloir'
               } else {
@@ -78,6 +75,7 @@ function ClassDispositionPage() {
   
   const handleSwitch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsMultiple(e.target.checked)
+    setSelectedCells([])
   }
 
   const handleCellClick = (e: React.MouseEvent<HTMLDivElement>, row: number, column: number) => {
@@ -86,7 +84,10 @@ function ClassDispositionPage() {
       setMenuPos({ x: e.clientX, y: e.clientY })
       dialogChoicePlacementSingle.current?.showModal()
     } else {
-      setSelectedCell({ row, column })
+      const key = `${row}-${column}`
+      setSelectedCells((prev) =>
+        prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+      )
     }
   }
 
@@ -101,6 +102,52 @@ function ClassDispositionPage() {
     dialogChoicePlacementSingle.current?.close()
   }
 
+  const handleMultipleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const status = e.target.value as CellStatus
+    if (!status || selectedCells.length === 0) return
+
+    setCellStatuses((prev) => {
+      const updated = { ...prev }
+      for (const key of selectedCells) {
+        updated[key] = status
+      }
+      return updated
+    })
+    setSelectedCells([])
+    e.target.value = ''
+  }
+
+  const handleRowClick = (row: number) => {
+    if (!data) return
+    setIsMultiple(true)
+    const rowKeys = Array.from({ length: Number(data.columns) }, (_, col) => `${row}-${col}`)
+
+    setSelectedCells((prev) => {
+      const allSelected = rowKeys.every((key) => prev.includes(key))
+      if (allSelected) {
+        return prev.filter((key) => !rowKeys.includes(key))
+      }
+      const missingKeys = rowKeys.filter((key) => !prev.includes(key))
+      return [...prev, ...missingKeys]
+    })
+  }
+
+  const handleColumnClick = (column: number) => {
+    if (!data) return
+    setIsMultiple(true)
+
+    const colKeys = Array.from({ length: Number(data.rows) }, (_, r) => `${r}-${column}`)
+
+    setSelectedCells((prev) => {
+      const allSelected = colKeys.every((key) => prev.includes(key))
+      if (allSelected) {
+        return prev.filter((key) => !colKeys.includes(key))
+      }
+      const missingKeys = colKeys.filter((key) => !prev.includes(key))
+      return [...prev, ...missingKeys]
+    })
+  }
+
   async function saveRoom() {
     if (!data) return
     setError('')
@@ -108,13 +155,9 @@ function ClassDispositionPage() {
 
     const seats: SeatData[] = []
 
-    // On parcourt toutes les cases de la grille (lignes × colonnes)
     for (let r = 0; r < Number(data.rows); r++) {
       for (let c = 0; c < Number(data.columns); c++) {
-        // Par défaut, une case non modifiée est 'disponible'
         const status = cellStatuses[`${r}-${c}`] ?? 'disponible'
-
-        // Un couloir n'est pas envoyé dans "seats" (c'est un trou dans la grille pour le backend)
         if (status === 'couloir') continue
 
         const type: SeatData['type'] =
@@ -181,6 +224,26 @@ function ClassDispositionPage() {
             </label>
             <h3 className={`pt-1 text-l ${isMultiple ? 'font-bold' : 'font-normal'}`} id='multiple'>Multiple</h3>
           </div>
+          {isMultiple && (
+            <div className="mt-2 flex flex-col items-center gap-1">
+              <select
+                defaultValue=""
+                onChange={handleMultipleStatusChange}
+                disabled={selectedCells.length === 0}
+                className="border-2 border-gray-400 rounded-md px-3 py-1 bg-white disabled:opacity-50 cursor-pointer"
+              >
+                <option value="" disabled>
+                  {selectedCells.length === 0
+                    ? 'Sélectionnez des cases...'
+                    : `Appliquer aux ${selectedCells.length} emplacement(s)`}
+                </option>
+                <option value="disponible">Place disponible</option>
+                <option value="interdite">Place interdite</option>
+                <option value="prise">Place avec une prise</option>
+                <option value="couloir">Couloir</option>
+              </select>
+            </div>
+          )}
         </div>
         <div className='flex gap-5'>
           <div className='flex gap-1'>
@@ -204,23 +267,28 @@ function ClassDispositionPage() {
       <div className='flex gap-2 px-20 pt-5'>
         <div className='w-8'></div>
         {Array.from({ length: Number(data.columns)}, (_,column) => (
-          <p key={column} className='flex-1 flex items-center justify-center'>{column+1}</p>
+          <p key={column} onClick={() => handleColumnClick(column)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex-1 flex items-center justify-center'>
+            {column+1}
+          </p>
         ))}
       </div>
       <div className='flex flex-col gap-2 px-20 pb-10'>
         {Array.from({ length: Number(data.rows) }, (_, row) => (
           <div key={row} className='flex gap-2'>
-            <p className='w-8 flex items-center justify-center'>{row+1}</p>
+            <p onClick={() => handleRowClick(row)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md w-8 flex items-center justify-center'>
+              {row+1}
+            </p>
             {Array.from({ length: Number(data.columns) }, (_, column) => {
-              // On récupère le statut de la case "row-column" (ou gris par défaut si pas encore modifiée)
-              const status = cellStatuses[`${row}-${column}`]
+              const key = `${row}-${column}`
+              const status = cellStatuses[key]
               const colorClass = status ? STATUS_COLORS[status] : 'bg-gray-200'
+              const isSelected = isMultiple && selectedCells.includes(key)
 
               return (
                 <div
                   key={column}
                   onClick={(e) => handleCellClick(e, row, column)}
-                  className={`cursor-pointer flex-1 flex items-center justify-center aspect-square rounded-md ${colorClass}`}
+                  className={`cursor-pointer flex-1 flex items-center justify-center aspect-square rounded-md ${colorClass} ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
                 ></div>
               )
             })}
@@ -259,7 +327,8 @@ function ClassDispositionPage() {
             <br /><span className='font-bold'>Selection unique</span>
             <br />Vous cliquez sur l'emplacement désiré, un menu s'ouvre et vous choisissez le status de cet emplacement.
             <br /><span className='font-bold '>Selection multiple</span>
-            <br />Vous sélectionnez un ou plusieurs emplacements puis une fois la sélection faite, vous choisissez dans le menu déroulant en haut de la page le status de l'emplacement.
+            <br />Vous sélectionnez un ou plusieurs emplacements réprésentés par un contour bleu en cliquant sur l'emplacement désiré. Il est également possible de sélectionner une ligne / colonne d'emplacements en cliquant sur son numéro.
+            <br />Une fois la sélection faite, vous choisissez dans le menu déroulant en haut de la page le status de l'emplacement qui s'appliquera à la sélection.
           </p>
           <br />
           <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "Sauvgarder la salle" en bas de la page pour sauvegarder la salle.</h2>
