@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router'
-import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 interface SeatData {
   row: number
@@ -208,7 +208,7 @@ function ClassDispositionPage() {
   }
 
   return (
-    <div className='p-5'>
+    <div className='flex flex-col h-[calc(100vh-130px)] p-5 overflow-hidden'>
       <div className='flex justify-between'>
         <div>
           <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1><img onClick={() => dialogRefHelp.current?.showModal()} src="/question-circle.svg" alt="" className='w-5 h-auto'/></div>
@@ -264,36 +264,43 @@ function ClassDispositionPage() {
           </div>
         </div>
       </div>
-      <div className='flex gap-2 px-20 pt-5'>
-        <div className='w-8'></div>
-        {Array.from({ length: Number(data.columns)}, (_,column) => (
-          <p key={column} onClick={() => handleColumnClick(column)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex-1 flex items-center justify-center'>
-            {column+1}
-          </p>
-        ))}
-      </div>
-      <div className='flex flex-col gap-2 px-20 pb-10'>
-        {Array.from({ length: Number(data.rows) }, (_, row) => (
-          <div key={row} className='flex gap-2'>
-            <p onClick={() => handleRowClick(row)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md w-8 flex items-center justify-center'>
-              {row+1}
+      <div className='flex-1 min-h-0 w-full overflow-auto flex items-center justify-center py-4'>
+        <div
+          className='grid gap-2 m-auto'
+          style={{
+            '--cell-size': `clamp(1.5rem, min(4rem, calc((100vh - 340px) / ${Number(data.rows)}), calc((100vw - 160px) / ${Number(data.columns)})), 4rem)`,
+            gridTemplateColumns: `2rem repeat(${Number(data.columns)}, var(--cell-size))`,
+            gridTemplateRows: `2rem repeat(${Number(data.rows)}, var(--cell-size))`,
+          } as React.CSSProperties}
+        >
+          <div />
+          {Array.from({ length: Number(data.columns) }, (_, column) => (
+            <p key={`col-${column}`} onClick={() => handleColumnClick(column)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex items-center justify-center'>
+              {column + 1}
             </p>
-            {Array.from({ length: Number(data.columns) }, (_, column) => {
-              const key = `${row}-${column}`
-              const status = cellStatuses[key]
-              const colorClass = status ? STATUS_COLORS[status] : 'bg-gray-200'
-              const isSelected = isMultiple && selectedCells.includes(key)
+          ))}
+          {Array.from({ length: Number(data.rows) }, (_, row) => (
+            <Fragment key={`row-${row}`}>
+              <p onClick={() => handleRowClick(row)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex items-center justify-center'>
+                {row + 1}
+              </p>
+              {Array.from({ length: Number(data.columns) }, (_, column) => {
+                const key = `${row}-${column}`
+                const status = cellStatuses[key]
+                const colorClass = status ? STATUS_COLORS[status] : 'bg-gray-200'
+                const isSelected = isMultiple && selectedCells.includes(key)
 
-              return (
-                <div
-                  key={column}
-                  onClick={(e) => handleCellClick(e, row, column)}
-                  className={`cursor-pointer flex-1 flex items-center justify-center aspect-square rounded-md ${colorClass} ${isSelected ? 'ring-3 ring-blue-500' : ''}`}
-                ></div>
-              )
-            })}
-          </div>
-        ))}
+                return (
+                  <div
+                    key={key}
+                    onClick={(e) => handleCellClick(e, row, column)}
+                    className={`cursor-pointer rounded-md ${colorClass} ${isSelected ? 'ring-3 ring-blue-500' : ''}`}
+                  ></div>
+                )
+              })}
+            </Fragment>
+          ))}
+        </div>
       </div>
       {error && (
         <p className="text-center text-red-600 font-bold pb-3">{error}</p>
