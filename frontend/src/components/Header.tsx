@@ -16,8 +16,8 @@ function Header() {
         <div className="flex justify-between gap-3 pt-1.5">
           <Link to={"/"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Acceuil</button></Link>
           <Link to={"/Room"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Salles</button></Link>
-          <Link to={"/History"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Historique Plans</button></Link>
-          <Link to={"/"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Promos</button></Link>
+          <Link to={"/Promo"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Promos</button></Link>
+          <Link to={"/History"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Historique Placements</button></Link>
         </div>
       </div>
 

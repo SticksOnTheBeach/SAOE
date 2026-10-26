@@ -288,7 +288,7 @@ function ClassDispositionPage() {
                 <div
                   key={column}
                   onClick={(e) => handleCellClick(e, row, column)}
-                  className={`cursor-pointer flex-1 flex items-center justify-center aspect-square rounded-md ${colorClass} ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
+                  className={`cursor-pointer flex-1 flex items-center justify-center aspect-square rounded-md ${colorClass} ${isSelected ? 'ring-3 ring-blue-500' : ''}`}
                 ></div>
               )
             })}
