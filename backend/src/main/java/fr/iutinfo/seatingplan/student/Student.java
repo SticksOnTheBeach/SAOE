@@ -43,6 +43,9 @@ public class Student {
     public String getFirstName() { return this.firstName; }
     public String getLastName() { return this.lastName; }
     public Group getGroupName() { return this.groupName; }
+    public Promo getPromo() { return this.promo; }
+    
+    
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
