@@ -7,11 +7,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import fr.iutinfo.seatingplan.student.Exception.StudentNotFoundException;
 
 @RestController
+@RequestMapping("/api/students")
 public class StudentController {
 	
 	private StudentRepository repository;
@@ -22,18 +24,18 @@ public class StudentController {
 	}
 
 	
-	@GetMapping("/students")
+	@GetMapping()
 	public List<Student> all(){
 		return repository.findAll();
 	}
 	
-	@GetMapping("/student/{id}")
+	@GetMapping("/{id}")
 	public Student one(@PathVariable Long id) {
 		return repository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
 	}
 	
 	
-	@PutMapping("/students/{id}")
+	@PutMapping("/{id}")
 	Student replaceStudent(@RequestBody Student newStudent, @PathVariable Long id) {
 	    
 	    return repository.findById(id)
@@ -51,7 +53,7 @@ public class StudentController {
 	
 	
 	
-	@DeleteMapping("/students/{id}")
+	@DeleteMapping("/{id}")
 	void deleteStudent(@PathVariable Long id) {
 	    repository.deleteById(id);
 	  }
