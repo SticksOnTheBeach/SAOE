@@ -13,14 +13,17 @@ import fr.iutinfo.seatingplan.room.Seat;
 /**
  * The whole problem handed to Timefold: the seats it can choose from,
  * one assignment per student to fill in, and the resulting score.
+ *
+ * Ce n'est PAS une entité JPA : c'est juste le "problème" que Timefold manipule en mémoire.
+ * Le résultat enregistré en base est dans SavedPlan.
  */
 @PlanningSolution
 public class SeatingPlan {
-    @ProblemFactCollectionProperty // ça dis à timefold que cette liste est une collection de faits du problème, c'est-à-dire que ce sont des données qui ne changent pas pendant la résolution du problème.
-    @ValueRangeProvider // pioche les valeurs à partir de cette liste pour les affecter aux variables de planification
+    @ProblemFactCollectionProperty // collection de faits : ne change pas pendant la résolution
+    @ValueRangeProvider // Timefold pioche les places dans cette liste pour les affecter aux variables de planification
     private List<Seat> seats;
 
-    @PlanningEntityCollectionProperty // liste des entité à mofifier
+    @PlanningEntityCollectionProperty // liste des entités à modifier : un SeatAssignment par étudiant
     private List<SeatAssignment> assignments;
 
     // Computed by Timefold: 0hard means every hard rule is respected
@@ -40,4 +43,4 @@ public class SeatingPlan {
     public HardSoftScore getScore() { return this.score; }
 
     public void setScore(HardSoftScore score) { this.score = score; }
-}
+}	
