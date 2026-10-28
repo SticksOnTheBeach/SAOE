@@ -7,25 +7,36 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import fr.iutinfo.seatingplan.student.Student;
+import fr.iutinfo.seatingplan.student.StudentRepository;
+
 @RestController
 @RequestMapping("/api/promos")
 public class PromoController {
 
 	
 	
-	private PromoRepository repository;
+	private PromoRepository promoRepository;
+	private StudentRepository studentRepository;
 	
-	public PromoController(PromoRepository repository) {
-		this.repository = repository;
+	public PromoController(PromoRepository promoRepository, StudentRepository studentRepository) {
+		this.promoRepository = promoRepository;
+		this.studentRepository = studentRepository;
 	}
 	
 	@GetMapping()
 	public List<Promo> all(){
-		return repository.findAll();
+		return promoRepository.findAll();
 	}
 	
 	@GetMapping("/{id}")
 	public Promo one(@PathVariable Long id) {
-		return repository.findById(id).orElseThrow(() -> new PromoNotFoundException(id));
+		return promoRepository.findById(id).orElseThrow(() -> new PromoNotFoundException(id));
+	}
+	
+	@GetMapping("/{id}/students")
+	public List<Student> studentsParPromo(@PathVariable Long id){
+		promoRepository.findById(id).orElseThrow(() -> new PromoNotFoundException(id));		
+		return studentRepository.findByPromoId(id);
 	}
 }
