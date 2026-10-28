@@ -10,6 +10,7 @@ import TestPage from './pages/TestPage'
 import PromoPage from './pages/PromoPage'
 import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
+import PlanTestPage from './pages/PlanTestPage'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/Profile" element={<ProfilePage />} />
         <Route path="/Settings" element={<SettingsPage />} />
         <Route path="/Test" element={<TestPage />} />
+        <Route path="/PlanTest" element={<PlanTestPage />} />
       </Route>
     </Routes>
   )
