@@ -13,4 +13,10 @@ public class RoomNotFoundAdvice {
     public String roomNotFoundHandler(RoomNotFoundException ex) {
         return ex.getMessage();
     }
+    
+    @ExceptionHandler(InvalidRoomException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String invalidRoomHandler(InvalidRoomException ex) {
+        return ex.getMessage();
+    }
 }
