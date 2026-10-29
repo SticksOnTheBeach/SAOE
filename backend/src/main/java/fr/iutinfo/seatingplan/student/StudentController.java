@@ -65,6 +65,17 @@ public class StudentController {
 	      });
 	}
 	
+	@GetMapping("/{firstName}")
+	public List<Student> findStudentByFirstName(@PathVariable String firstName){
+		return studentRepository.findByFirstName(firstName);
+	}
+	
+	
+	@GetMapping("/{lastName}")
+	public List<Student> findStudentByLastName(@PathVariable String lastName){
+		return studentRepository.findByLastName(lastName);
+	}
+	
 	
 	
 	@DeleteMapping("/{id}")
