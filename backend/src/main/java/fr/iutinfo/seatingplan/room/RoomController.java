@@ -1,18 +1,23 @@
 package fr.iutinfo.seatingplan.room;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 
 @RestController
@@ -20,8 +25,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoomController {
 	private RoomRepository roomRepository;
 	
-	public record SeatRequest(int row, int column, boolean hasPowerOutlet) { }
-	public record RoomCreateRequest(String name, int rows, int columns, List<SeatRequest> seats) { }
+	public record SeatRequest(int row, int column, @NotNull SeatType type) { }
+
+	public record RoomCreateRequest(
+	    @NotBlank String name,
+	    @Positive int rows,
+	    @Positive int columns,
+	    @NotNull @Valid List<SeatRequest> seats) { }
+	
+
 	
 	
 	public RoomController(RoomRepository repository) {
@@ -34,13 +46,16 @@ public class RoomController {
 	}
 	
 	@GetMapping("/{id}")
-	public Room one(@PathVariable Long id) {
+	public Room one(@PathVariable String id) {
 		return roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
 	}
 	
+	
+	
+	
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	void deleteStudent(@PathVariable Long id) {
+	void deleteStudent(@PathVariable String id) {
 		if (!roomRepository.existsById(id)) {
 		    throw new RoomNotFoundException(id);
 		}
@@ -51,24 +66,37 @@ public class RoomController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public Room create(@RequestBody RoomCreateRequest request) {
 
-	    Room room = new Room(request.name(), request.rows(), request.columns());
-	    Set<String> positions = new HashSet<>();
+		List<Seat> seats = request.seats().stream()
+		        .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type()))
+		        .toList();
 
-	    for (SeatRequest s : request.seats()) {
+	    try {
+	        Room room = new Room(UUID.randomUUID().toString(),
+	                request.name(), request.rows(), request.columns(), seats);
+	        return roomRepository.save(room);
+	    } catch (IllegalArgumentException e) {
+	        throw new InvalidRoomException(e.getMessage());
+	    }
+	}
+	
+	
+	
+	@PutMapping("/{id}")
+	public Room update(@PathVariable String id, @Valid @RequestBody RoomCreateRequest request) {
 
-	        if (s.row() < 0 || s.row() >= request.rows()
-	                || s.column() < 0 || s.column() >= request.columns()) {
-	            throw new InvalidRoomException("Place hors de la salle : (" + s.row() + ", " + s.column() + ")");
-	        }
+	    Room room = roomRepository.findById(id)
+	            .orElseThrow(() -> new RoomNotFoundException(id));
 
-	        if (!positions.add(s.row() + "-" + s.column())) {
-	            throw new InvalidRoomException("Place en double : (" + s.row() + ", " + s.column() + ")");
-	        }
+	    List<Seat> seats = request.seats().stream()
+	            .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type()))
+	            .toList();
 
-	        room.addSeat(new Seat(s.row(), s.column(), s.hasPowerOutlet()));
+	    try {
+	        room.update(request.name(), request.rows(), request.columns(), seats);
+	    } catch (IllegalArgumentException e) {
+	        throw new InvalidRoomException(e.getMessage());
 	    }
 
 	    return roomRepository.save(room);
 	}
-	
 }
