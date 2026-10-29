@@ -73,7 +73,7 @@ public class StudentController {
 	
 	@GetMapping("/lastName/{lastName}")
 	public List<Student> findStudentByLastName(@PathVariable String lastName){
-		return studentRepository.findByLastName(lastName);
+		return studentRepository.findByLastNameIgnoreCase(lastName);
 	}
 	
 	
