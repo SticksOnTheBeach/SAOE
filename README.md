@@ -117,3 +117,4 @@ SAOE/
 - Trystan Deneuve
 - Emile Delpey
 - Geoffrey Rigal
+- Emile Merceron (dit Mimile)
