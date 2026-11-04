@@ -209,12 +209,12 @@ function ClassDispositionPage() {
 
   return (
     <div className='flex flex-col h-[calc(100vh-130px)] p-5 overflow-hidden'>
-      <div className='flex justify-between'>
+      <div className='grid grid-cols-3 items-start'>
         <div>
           <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1><img onClick={() => dialogRefHelp.current?.showModal()} src="/question-circle.svg" alt="" className='w-5 h-auto'/></div>
           <h2>Salle {data.name}</h2>
         </div>
-        <div>
+        <div className='justify-self-center flex flex-col items-center'>
           <h2 className='text-center text-xl pb-2'>Type de sélection</h2>
           <div className='flex gap-5 p-2 rounded-md'>
             <h3 className={`pt-1 text-l ${isMultiple ? 'font-normal' : 'font-bold'}`}>Simple</h3>
@@ -245,7 +245,7 @@ function ClassDispositionPage() {
             </div>
           )}
         </div>
-        <div className='flex gap-5'>
+        <div className='flex flex-col gap-3 justify-self-end'>
           <div className='flex gap-1'>
             <div className='w-5 h-5 bg-[#AAD690] rounded-md'></div>
             <p>Place disponible</p>
@@ -264,9 +264,12 @@ function ClassDispositionPage() {
           </div>
         </div>
       </div>
-      <div className='flex-1 min-h-0 w-full overflow-auto flex items-center justify-center py-4'>
+      <div className='bg-gray-200 flex justify-center p-3 mx-[45%] mt-10 rounded-md'>
+        <h2>Bureau</h2>
+      </div>
+      <div className='flex-1 min-h-0 w-full overflow-auto flex'>
         <div
-          className='grid gap-2 m-auto'
+          className='grid gap-2 m-auto pr-10'
           style={{
             '--cell-size': `clamp(1.5rem, min(4rem, calc((100vh - 340px) / ${Number(data.rows)}), calc((100vw - 160px) / ${Number(data.columns)})), 4rem)`,
             gridTemplateColumns: `2rem repeat(${Number(data.columns)}, var(--cell-size))`,
