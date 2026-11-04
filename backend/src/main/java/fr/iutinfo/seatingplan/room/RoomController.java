@@ -31,7 +31,9 @@ public class RoomController {
 	        equipment = (equipment == null) ? List.of() : equipment;
 	    }
 	}
-
+	
+	
+	// on laisse sous entendre au programme que la réponse attendu renvoyé comme requête par le serveur, est sous la forme suivante, donc on attend ça de la part du serveur du moins comme requete d'envoie sur Api
 	public record RoomCreateRequest(
 	    @NotBlank String name,
 	    @Positive int rows,
@@ -39,20 +41,32 @@ public class RoomController {
 	    @NotNull @Valid List<SeatRequest> seats) { }
 	
 
+	public record SeatResponse(String id, int row, int column, SeatType type, List<SeatEquipment> equipment, boolean usable) {
+		static SeatResponse from(Seat s) {
+			return new SeatResponse(s.getId(), s.getRow(), s.getColumn(), s.getType(), s.getEquipment(), s.isUsable());
+		}
+	}
+		
 	
+	public record RoomResponse(String id, String name, int rows, int columns, int seatCount, int usableSeatCount, List<SeatResponse> seats) {
+		static RoomResponse from(Room r) {
+			// pour r.getSeat Cette ligne, dans RoomResponse.from, transforme chaque Seat de la salle en SeatResponse.
+			return new RoomResponse(r.getId(), r.getName(), r.getRows(), r.getColumns(), r.getSeatCount(), r.getUsableSeatCount(), r.getSeats().stream().map(SeatResponse::from).toList());
+		}
+	}
 	
 	public RoomController(RoomRepository repository) {
 		this.roomRepository = repository;
 	}
 	
 	@GetMapping()
-	public List<Room> all(){
-		return roomRepository.findAll();
+	public List<RoomResponse> all(){
+		return roomRepository.findAll().stream().map(RoomResponse::from).toList();
 	}
 	
 	@GetMapping("/{id}")
-	public Room one(@PathVariable String id) {
-		return roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
+	public RoomResponse one(@PathVariable String id) {
+	    return RoomResponse.from(roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id)));
 	}
 	
 	
@@ -64,6 +78,7 @@ public class RoomController {
 		if (!roomRepository.existsById(id)) {
 		    throw new RoomNotFoundException(id);
 		}
+		// roomRepository.deleteById(id);
 		roomRepository.deleteById(id);
 	}
 	
