@@ -1,6 +1,8 @@
 package fr.iutinfo.seatingplan.room;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -69,6 +71,18 @@ public class RoomController {
 	    return RoomResponse.from(roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id)));
 	}
 	
+	@GetMapping("/{id}/equipment")
+	public Map<SeatEquipment, Integer> roomEquipment(@PathVariable String id) {
+		Room room = roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
+		
+		Map<SeatEquipment, Integer> equipmentCounts = new EnumMap<>(SeatEquipment.class);
+		for (SeatEquipment equipment : SeatEquipment.values()) {
+			equipmentCounts.put(equipment, room.countWith(equipment));
+		}
+		return equipmentCounts;
+	}
+	
+	
 	
 	
 	
@@ -84,7 +98,7 @@ public class RoomController {
 	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Room create(@RequestBody RoomCreateRequest request) {
+	public RoomResponse create(@RequestBody RoomCreateRequest request) {
 
 		List<Seat> seats = request.seats().stream()
 		        .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type(), s.equipment()))
@@ -93,7 +107,7 @@ public class RoomController {
 	    try {
 	        Room room = new Room(UUID.randomUUID().toString(),
 	                request.name(), request.rows(), request.columns(), seats);
-	        return roomRepository.save(room);
+	        return RoomResponse.from(roomRepository.save(room));
 	    } catch (IllegalArgumentException e) {
 	        throw new InvalidRoomException(e.getMessage());
 	    }
