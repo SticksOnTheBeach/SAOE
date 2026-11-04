@@ -123,8 +123,20 @@ function RoomPage() {
   }
 
   function handleContinue() {
-    if (planName.trim() === "" || Number(planX) <= 0 || Number(planY) <= 0) {
-      setError("Le formulaire n'est pas correctement rempli")
+    if (planName.trim() === "") {
+      setError("Le nom de la salle est vide.")
+      return
+    } else if (Number(planX) <= 0) {
+      setError("Le nombre de lignes n'est pas correct.")
+      return
+    } else if (Number(planY) <= 0) {
+      setError("Le nombre de colonnes n'est pas correct.")
+      return
+    } else if (Number(planY) > 100) {
+      setError("Le nombre de colonnes maximum est de 100.")
+      return
+    } else if (Number(planX) > 100) {
+      setError("Le nombre de lignes maximum est de 100.")
       return
     }
     dialogRef.current?.close()

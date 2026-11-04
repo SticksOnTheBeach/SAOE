@@ -266,7 +266,7 @@ function PromoDetailPage() {
   return (
     <div className='bg-white min-h-[calc(100vh-10rem)]'>
       <div className='flex items-center justify-between gap-5 px-10 pt-5'>
-        <Link to="/Promo" className='text-[#4D4D4D] hover:underline whitespace-nowrap'>&larr; Mes promos</Link>
+        <Link to="/Promo" className='text-[#4D4D4D] hover:bg-gray-200 rounded-md p-3 whitespace-nowrap text-4xl'>&larr;</Link>
         <h1 className='text-4xl text-center text-[#4D4D4D]'>Promotion {promo?.name ?? '...'}</h1>
         <div className='flex gap-3'>
           <input ref={fileInputRef} onChange={importCsv} type="file" accept=".csv,text/csv" id="csv" className='hidden'/>
@@ -310,18 +310,6 @@ function PromoDetailPage() {
         </aside>
 
         <form ref={formRef} onSubmit={saveAll} className='flex-1 min-w-0'>
-          <div className='sticky top-0 z-10 flex items-center justify-between gap-5 bg-white border-b-1 border-gray-300 pb-3'>
-            <p className='text-[#4D4D4D]'>
-              {dirtyCount === 0
-                ? 'Modifiez les lignes directement, puis enregistrez (Ctrl+S)'
-                : `${dirtyCount} modification${dirtyCount > 1 ? 's' : ''} non enregistrée${dirtyCount > 1 ? 's' : ''}`}
-            </p>
-            <div className='flex gap-3'>
-              <button type="button" onClick={cancelChanges} disabled={dirtyCount === 0} className='border-1 border-gray-400 text-[#4D4D4D] rounded-md px-5 py-1 hover:bg-gray-200 disabled:opacity-40'>Annuler</button>
-              <button type="submit" disabled={loading || dirtyCount === 0} className='border-1 border-gray-400 text-[#4D4D4D] rounded-md px-5 py-1 hover:bg-gray-200 disabled:opacity-40'>Enregistrer</button>
-            </div>
-          </div>
-
           {students.length === 0 && (
             <p className='text-[#4D4D4D] pt-10'>Aucun étudiant dans cette promotion. Importez un CSV pour commencer.</p>
           )}
@@ -361,6 +349,10 @@ function PromoDetailPage() {
               </div>
             </section>
           ))}
+          <div className='top-0 z-10 flex items-center gap-5 bg-white border-b-1 border-gray-300 pb-3 pt-10'>
+            <button type="button" onClick={cancelChanges} disabled={dirtyCount === 0} className='cursor-pointer text-center text-white px-10 py-2 rounded-md bg-[#CF6363] hover:bg-[#E5BEBE] hover:border-gray-700 hover:text-gray-700'>Annuler</button>
+            <button type="submit" disabled={loading || dirtyCount === 0} className='cursor-pointer text-center text-white px-10 py-2 rounded-md bg-[#73BF78] hover:bg-[#CDE5BE] hover:border-gray-700 hover:text-gray-700'>Enregistrer</button>
+          </div>
         </form>
       </div>
 

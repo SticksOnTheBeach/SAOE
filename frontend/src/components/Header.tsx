@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { pathname } = useLocation()
 
   return (
     <header className="flex justify-between gap-6 bg-[#B51621] px-1 py-0.5 text-white shadow-md">
@@ -14,10 +15,10 @@ function Header() {
           </h1>
         </div>
         <div className="flex justify-between gap-3 pt-1.5">
-          <Link to={"/"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Acceuil</button></Link>
-          <Link to={"/Room"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Salles</button></Link>
-          <Link to={"/Promo"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Mes Promos</button></Link>
-          <Link to={"/History"}><button className="py-3 px-7 rounded-lg hover:bg-[#96121B]">Historique Placements</button></Link>
+          <Link to={"/"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/' ? 'font-bold' : ''}`}>Acceuil</button></Link>
+          <Link to={"/Promo"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/Promo' ? 'font-bold' : ''}`}>Mes Promos</button></Link>
+          <Link to={"/Room"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/Room' ? 'font-bold' : ''}`}>Mes Salles</button></Link>
+          <Link to={"/History"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/History' ? 'font-bold' : ''}`}>Historique Placements</button></Link>
         </div>
       </div>
 
