@@ -25,7 +25,12 @@ import jakarta.validation.constraints.Positive;
 public class RoomController {
 	private RoomRepository roomRepository;
 	
-	public record SeatRequest(int row, int column, @NotNull SeatType type) { }
+	// record permettant de gérer le fais que si le json renvoyé par le site sur l'api de contient pas de equipment et bien ça crash pas
+	public record SeatRequest(int row, int column, @NotNull SeatType type, List<SeatEquipment> equipment) {
+	    public SeatRequest {
+	        equipment = (equipment == null) ? List.of() : equipment;
+	    }
+	}
 
 	public record RoomCreateRequest(
 	    @NotBlank String name,
@@ -67,7 +72,7 @@ public class RoomController {
 	public Room create(@RequestBody RoomCreateRequest request) {
 
 		List<Seat> seats = request.seats().stream()
-		        .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type()))
+		        .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type(), s.equipment()))
 		        .toList();
 
 	    try {

@@ -43,21 +43,36 @@ public class Room {
         // Copie modifiable : Hibernate a besoin d'une vraie liste
         this.seats = new ArrayList<>(seats);
     }
+    
+    
+    // GETTERS : SPRING AFFICHERA LES RÉSULTATS DE CHAQUE GETTERS DANS LE JSON SUR LE SITE
 
     public String getId() { return this.id; }
     public String getName() { return this.name; }
     public int getRows() { return this.rows; }
     public int getColumns() { return this.columns; }
-    public List<Seat> getSeats() { return this.seats; }
+    public List<Seat> getSeats() { return this.seats; }	
     public int getSeatCount() { return this.seats.size(); }
 
     // places utilisables = celles qui ne sont pas interdites
     public int getUsableSeatCount() {
         return (int) seats.stream().filter(Seat::isUsable).count();
     }
+    
+    public int getPrmSeatCount() {
+    	return (int) countWith(SeatEquipment.PRM);
+    }
+    
+    public int getPowerOutletSeatCount() {
+    	return (int) countWith(SeatEquipment.POWER_OUTLET);
+    }
 
-    public int getOutletSeatCount() {
-        return (int) this.seats.stream().filter(Seat::hasOutlet).count();
+    public int countWith(SeatEquipment e) {
+        return (int) seats.stream().filter(s -> s.isUsable() && s.has(e)).count();
+    }
+    
+    public String getTestTexteAAfficher() {
+    	return "test";
     }
 
     /**
@@ -82,7 +97,8 @@ public class Room {
         for (Seat wanted : newSeats) {
             Seat existing = existingByCell.get(cellKey(wanted.getRow(), wanted.getColumn()));
             if (existing != null) {
-                existing.setType(wanted.getType());
+                //existing.setType(wanted.getType());
+            	existing.update(wanted.getType(), wanted.getEquipment());
                 result.add(existing);
             } else {
                 result.add(wanted);
