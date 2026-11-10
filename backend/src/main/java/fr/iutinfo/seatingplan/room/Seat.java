@@ -89,10 +89,12 @@ public class Seat {
     public void update(SeatType type, List<SeatEquipment> equipment) {
         List<SeatEquipment> asked = orEmpty(equipment);
         checkEquipment(type, asked);
+        // on copie avant de vider : la liste reçue peut être celle d'une autre place
+        List<SeatEquipment> wanted = new ArrayList<>(asked);
         this.type = type;
-        // clear + addAll Hibernate suit les changements du même Set
+        // clear + addAll Hibernate suit les changements de la même liste
         this.equipment.clear();
-        this.equipment.addAll(asked);
+        this.equipment.addAll(wanted);
     }
  
     
