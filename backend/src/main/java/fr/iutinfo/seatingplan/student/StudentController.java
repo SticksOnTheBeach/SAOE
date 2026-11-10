@@ -44,13 +44,13 @@ public class StudentController {
 	}
 	
 	@GetMapping("/{id}")
-	public Student one(@PathVariable Long id) {
+	public Student one(@PathVariable String id) {
 		return studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
 	}
 	
 	
 	@PutMapping("/{id}")
-	Student replaceStudent(@RequestBody Student newStudent, @PathVariable Long id) {
+	Student replaceStudent(@RequestBody Student newStudent, @PathVariable String id) {
 	    
 	    return studentRepository.findById(id)
 	      .map(student -> {
@@ -79,7 +79,7 @@ public class StudentController {
 	
 	
 	@DeleteMapping("/{id}")
-	void deleteStudent(@PathVariable Long id) {
+	void deleteStudent(@PathVariable String id) {
 		studentRepository.deleteById(id);
 	  }
 	

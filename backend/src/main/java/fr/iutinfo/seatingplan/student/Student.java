@@ -15,8 +15,8 @@ import jakarta.persistence.ManyToOne;
 @Entity
 public class Student {
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long id; // en gros l'id est généré automatiquement, par rapport à l'ordre dans lequel celui est incrémenter dans la bdd
+    @GeneratedValue(strategy=GenerationType.UUID)
+    private String id; // en gros l'id est généré automatiquement, par rapport à l'ordre dans lequel celui est incrémenter dans la bdd
     private String firstName;
     private String lastName;
     
@@ -39,7 +39,7 @@ public class Student {
         this.promo = promo;
     }
 
-    public Long getId() { return this.id; }
+    public String getId() { return this.id; }
     public String getFirstName() { return this.firstName; }
     public String getLastName() { return this.lastName; }
     public Group getGroupName() { return this.groupName; }

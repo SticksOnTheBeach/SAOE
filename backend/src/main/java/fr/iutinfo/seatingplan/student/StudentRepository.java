@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface StudentRepository extends JpaRepository<Student, Long> {
+public interface StudentRepository extends JpaRepository<Student, String> {
 	List<Student> findByPromoId(Long promoId);
 	List<Student> findByLastNameIgnoreCase(String lastName);
 	List<Student> findByFirstName(String firstName);
