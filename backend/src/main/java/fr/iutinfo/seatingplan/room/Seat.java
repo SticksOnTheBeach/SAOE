@@ -103,14 +103,14 @@ public class Seat {
 
     private static void checkEquipment(SeatType type, List<SeatEquipment> equipment) {
         if (type == null) {
-            throw new IllegalArgumentException("A seat needs a type");
+            throw new IllegalArgumentException("Une place doit avoir un type");
         }
         if (type == SeatType.FORBIDDEN && !equipment.isEmpty()) {
-            throw new IllegalArgumentException("A forbidden seat cannot have equipment");
+            throw new IllegalArgumentException("Une place interdite ne peut pas avoir d'équipement");
         }
         
         if (new HashSet<>(equipment).size() != equipment.size()) {
-            throw new IllegalArgumentException("A seat cannot have the same equipment twice");
+            throw new IllegalArgumentException("Une place ne peut pas avoir deux fois le même équipement");
         }
     }
 }
