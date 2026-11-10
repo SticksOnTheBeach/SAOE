@@ -71,7 +71,7 @@ public class Room {
         return (int) seats.stream().filter(s -> s.isUsable() && s.has(e)).count();
     }
     
-    public String getTestTexteAAfficher() {
+    public String getTestTexteAAffiche() {
     	return "test";
     }
 
