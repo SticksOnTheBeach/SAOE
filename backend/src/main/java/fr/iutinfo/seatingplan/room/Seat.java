@@ -59,8 +59,6 @@ public class Seat {
     public int getColumn() { return this.column; }
     public SeatType getType() { return this.type; }
 
-    // Utilisé par Room.update : on change le type d'une place existante sans la recréer
-    public void setType(SeatType type) { this.type = type; }
     
     // public void setEquipment(SeatEquipment equipment) { this.equipment.add(equipment); }
 
