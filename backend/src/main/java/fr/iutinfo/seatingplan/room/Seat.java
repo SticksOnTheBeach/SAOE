@@ -41,12 +41,13 @@ public class Seat {
     
     // voir pour faire en sorte qu'une place ait plusieurs types. Peut-être une liste de type dcp ?
     public Seat(String id, int row, int column, SeatType type, List<SeatEquipment> equipment) {
-    	checkEquipment(type, equipment);
+    	List<SeatEquipment> asked = orEmpty(equipment);
+    	checkEquipment(type, asked);
         this.id = id;
         this.row = row;
         this.column = column;
         this.type = type;
-        this.equipment = new ArrayList<>(equipment); 
+        this.equipment = new ArrayList<>(asked); 
     }
     
     public Seat(String id, int row, int column, SeatType type) {
@@ -86,14 +87,20 @@ public class Seat {
     
     
     public void update(SeatType type, List<SeatEquipment> equipment) {
-        checkEquipment(type, equipment);
+        List<SeatEquipment> asked = orEmpty(equipment);
+        checkEquipment(type, asked);
         this.type = type;
         // clear + addAll Hibernate suit les changements du même Set
         this.equipment.clear();
-        this.equipment.addAll(equipment);
+        this.equipment.addAll(asked);
     }
  
     
+    // equipment null = aucun équipement, pas une erreur
+    private static List<SeatEquipment> orEmpty(List<SeatEquipment> equipment) {
+        return (equipment == null) ? List.of() : equipment;
+    }
+
     private static void checkEquipment(SeatType type, List<SeatEquipment> equipment) {
         if (type == null) {
             throw new IllegalArgumentException("A seat needs a type");
