@@ -45,6 +45,7 @@ const PromoPage = () => {
   const [editingId, setEditingId] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const dialogConfirmEmpty = useRef<HTMLDialogElement>(null)
   const [newPromoName, setNewPromoName] = useState('')
   // unsaved changes, by student id (only the students the user touched)
   const [drafts, setDrafts] = useState<Record<string, Draft>>({})
@@ -214,6 +215,30 @@ const PromoPage = () => {
       setLoading(false)
     }
   }
+  // fonction qui VIDE une promo de ses étudiants
+  async function emptyPromo() {
+    if (!selectedPromo) return
+    setError('')
+    setMessage('')
+    try {
+      const res = await fetch(`/api/promos/${selectedPromo.id}/students`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        await fetchStudentCounts()
+        setGroupsOfPromo([])
+        setMessage('Promotion vidée')
+      } else {
+        setError(await readError(res))
+      }
+    } catch (err) {
+      console.error('Erreur lors du vidage de la promotion : ', err)
+      setError('Le serveur ne répond pas')
+    } finally {
+      dialogConfirmEmpty.current?.close()
+    }
+  }
+
   // edit mode: sends one PUT per modified student
   async function saveStudents() {
     if (!selectedPromo || dirtyStudents.length === 0) return
@@ -341,6 +366,9 @@ const PromoPage = () => {
                       title={selectedPromo ? '' : "Enregistre d'abord la promotion"}
                       className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Importer un CSV</button>
               <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={importCsv} className="hidden" />
+              <button type="button" onClick={() => dialogConfirmEmpty.current?.showModal()} disabled={loading || !selectedPromo}
+                      title={selectedPromo ? '' : "Enregistre d'abord la promotion"}
+                      className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Vider la promotion</button>
               <button type="button" onClick={selectedPromo ? saveStudents : savePromo}
                       disabled={loading || (!!selectedPromo && dirtyStudents.length === 0)}
                       title={selectedPromo && dirtyStudents.length === 0 ? 'Aucune modification à enregistrer' : ''}
@@ -443,6 +471,23 @@ const PromoPage = () => {
                 <div className='pt-5 flex gap-5'>
                   <button type="button" onClick={deletePromo} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
                   <button type="button" onClick={() => dialogConfirmPromo.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
+                </div>
+              </div>
+              <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
+            </div>
+          </div>
+        </dialog>
+
+        {/* Dialog confirm empty promo (no onClose={resetDialog}: it would erase the result message) */}
+        <dialog ref={dialogConfirmEmpty} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
+          <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+            <div className='flex justify-between'>
+              <div>
+                <h1 className='text-2xl'>Vider la promotion {selectedPromo?.name} ?</h1>
+                <h2>Les {selectedPromo ? (studentCounts[selectedPromo.id] ?? 0) : 0} étudiant(s) seront supprimés. La promotion est conservée. Cette action est définitive.</h2>
+                <div className='pt-5 flex gap-5'>
+                  <button type="button" onClick={emptyPromo} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Vider</button>
+                  <button type="button" onClick={() => dialogConfirmEmpty.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
                 </div>
               </div>
               <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
