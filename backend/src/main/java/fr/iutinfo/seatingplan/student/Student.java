@@ -18,6 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OrderColumn;
 
 @Entity
 public class Student {
@@ -38,9 +39,11 @@ public class Student {
     // rajouter un champ + une règle. Là on a une liste d'équipements, donc rajouter un besoin = rajouter une valeur
     // dans l'enum SeatEquipment et c'est tout, le reste du code bouge pas
     // EAGER : on veut les besoins de l'étudiant direct avec lui, sinon ça pète hors de la session hibernate
+    // OrderColumn : hibernate garde l'ordre de la liste dans une colonne "position", du coup c'est une vraie liste et pas un sac
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "student_required_equipment", joinColumns = @JoinColumn(name = "student_id"))
     @Enumerated(EnumType.STRING)
+    @OrderColumn(name = "position")
     private List<SeatEquipment> requiredEquipment = new ArrayList<>();
     
     protected Student() {}
