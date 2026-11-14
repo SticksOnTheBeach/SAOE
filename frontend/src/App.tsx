@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router'
 import Layout from './components/Layout'
-import ClassDispositionPage from './pages/ClassDispositionPage'
+// import ClassDispositionPage from './pages/ClassDispositionPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import HomePage from './pages/HomePage'
@@ -12,6 +12,7 @@ import PromoDetailPage from './pages/PromoDetailPage'
 import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
 import PlanTestPage from './pages/PlanTestPage'
+import ClassDispositionPage2 from "./pages/ClassDispositionPage2.tsx";
 
 function App() {
   return (
@@ -21,7 +22,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route index element={<HomePage />} />
         <Route path="/Room" element={<RoomPage />} />
-        <Route path="/ClassDisposition" element={<ClassDispositionPage />} />
+        <Route path="/ClassDisposition" element={<ClassDispositionPage2 />} />
         <Route path="/History" element={<HistoryPage />} />
         <Route path="/Promo" element={<PromoPage />} />
         <Route path="/Promo/:id" element={<PromoDetailPage />} />
