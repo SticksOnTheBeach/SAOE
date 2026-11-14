@@ -100,11 +100,13 @@ public class RoomController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public RoomResponse create(@RequestBody RoomCreateRequest request) {
 
-		List<Seat> seats = request.seats().stream()
+	    // le new Seat doit être DANS le try : c'est lui qui râle si on demande une place interdite avec des
+	    // équipements, et on veut que ça sorte en 400 (InvalidRoomException) et pas en 500
+	    try {
+	    	List<Seat> seats = request.seats().stream()
 		        .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type(), s.equipment()))
 		        .toList();
-
-	    try {
+			
 	        Room room = new Room(UUID.randomUUID().toString(),
 	                request.name(), request.rows(), request.columns(), seats);
 	        return RoomResponse.from(roomRepository.save(room));
@@ -121,11 +123,13 @@ public class RoomController {
 	    Room room = roomRepository.findById(id)
 	            .orElseThrow(() -> new RoomNotFoundException(id));
 
-	    List<Seat> seats = request.seats().stream()
+	    // pareil que le POST : construction des places dans le try, et on passe bien s.equipment()
+	    // sinon le PUT effaçait tous les équipements de la salle à chaque modif
+	    try {
+	    	List<Seat> seats = request.seats().stream()
 	            .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type(), s.equipment()))
 	            .toList();
-
-	    try {
+			
 	        room.update(request.name(), request.rows(), request.columns(), seats);
 	    } catch (IllegalArgumentException e) {
 	        throw new InvalidRoomException(e.getMessage());
