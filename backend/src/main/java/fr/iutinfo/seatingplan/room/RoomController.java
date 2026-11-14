@@ -122,7 +122,7 @@ public class RoomController {
 	            .orElseThrow(() -> new RoomNotFoundException(id));
 
 	    List<Seat> seats = request.seats().stream()
-	            .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type()))
+	            .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type(), s.equipment()))
 	            .toList();
 
 	    try {
