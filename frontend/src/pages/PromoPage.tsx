@@ -16,6 +16,16 @@ interface Student {
   promo: Promo | null
 }
 
+type Equipment = 'PRM' | 'POWER_OUTLET'
+
+// What the user typed for one student, not saved yet
+interface Draft {
+  firstName: string
+  lastName: string
+  groupName: string
+  requiredEquipment: Equipment[]
+}
+
 const PromoPage = () => {
   const navigate = useNavigate()
   const [promos, setPromos] = useState<Promo[]>([])
@@ -33,6 +43,25 @@ const PromoPage = () => {
   const [editingId, setEditingId] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  // unsaved changes, by student id (only the students the user touched)
+  const [drafts, setDrafts] = useState<Record<string, Draft>>({})
+
+  function baseDraft(student: Student): Draft {
+    return {
+      firstName: student.firstName,
+      lastName: student.lastName,
+      groupName: student.groupName,
+      requiredEquipment: student.requiredEquipment ?? [],
+    }
+  }
+
+  function draftOf(student: Student): Draft {
+    return drafts[student.id] ?? baseDraft(student)
+  }
+
+  function updateDraft(student: Student, change: (d: Draft) => Draft) {
+    setDrafts((prev) => ({ ...prev, [student.id]: change(prev[student.id] ?? baseDraft(student)) }))
+  }
 
 
   // list : the students to read the groups from (after an import, the `students` state is not up to date yet)
@@ -53,6 +82,12 @@ const PromoPage = () => {
     setMessage('')
     setError('')
     setLoading(false)
+  }
+
+  // closing the edit dialog throws the unsaved changes away
+  function closeEditDialog() {
+    resetDialog()
+    setDrafts({})
   }
 
 
@@ -178,7 +213,7 @@ const PromoPage = () => {
         </div>
 
         {/* Dialog modif promo */}
-        <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
+        <dialog ref={dialogRef} onClose={closeEditDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
           <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
             <div className='flex justify-between mb-5'>
               <h2 className='justify-self-center text-center text-4xl whitespace-nowrap'>{editingId ? 'Modification de la promotion' : 'Outil de création de la promotion'}</h2>
@@ -228,13 +263,19 @@ const PromoPage = () => {
                             .map((student) => (
                                 <tr key={student.id}>
                                   <td className='px-2'>
-                                    <input type="text" defaultValue={student.firstName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' />
+                                    <input type="text" value={draftOf(student).firstName} maxLength={50}
+                                           onChange={(e) => updateDraft(student, (d) => ({ ...d, firstName: e.target.value }))}
+                                           className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' />
                                   </td>
                                   <td className='px-2'>
-                                    <input type="text" defaultValue={student.lastName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' />
+                                    <input type="text" value={draftOf(student).lastName} maxLength={50}
+                                           onChange={(e) => updateDraft(student, (d) => ({ ...d, lastName: e.target.value }))}
+                                           className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' />
                                   </td>
                                   <td className='px-2'>
-                                    <select defaultValue={student.groupName} aria-label={`Groupe de ${student.firstName} ${student.lastName}`} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-3'>
+                                    <select value={draftOf(student).groupName}
+                                            onChange={(e) => updateDraft(student, (d) => ({ ...d, groupName: e.target.value }))}
+                                            aria-label={`Groupe de ${student.firstName} ${student.lastName}`} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-3'>
                                       {groupsOfPromo.map((thisGroup) => (
                                           <option key={thisGroup} value={thisGroup}>{thisGroup}</option>
                                       ))}
