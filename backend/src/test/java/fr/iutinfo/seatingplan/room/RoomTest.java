@@ -20,10 +20,13 @@ class RoomTest {
         assertThat(room.getSeats()).hasSize(2);
     }
 
+    // depuis le commit 001852b la salle prend des places indépendantes et plus forcément rows*columns places,
+    // donc une grille à trous c'est normal maintenant (une salle peut avoir des cases sans table)
     @Test
-    void rejectsMissingSeats() {
-        assertThatThrownBy(() -> new Room("1", "Room 1", 2, 2, List.of(seat(0, 0))))
-                .isInstanceOf(IllegalArgumentException.class);
+    void acceptsAGridWithHoles() {
+        Room room = new Room("1", "Room 1", 2, 2, List.of(seat(0, 0)));
+
+        assertThat(room.getSeatCount()).isEqualTo(1);
     }
 
     @Test
