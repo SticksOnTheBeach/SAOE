@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import fr.iutinfo.seatingplan.promo.Promo;
 import fr.iutinfo.seatingplan.room.SeatEquipment;
 import jakarta.persistence.CollectionTable;
@@ -40,10 +43,13 @@ public class Student {
     // dans l'enum SeatEquipment et c'est tout, le reste du code bouge pas
     // EAGER : on veut les besoins de l'étudiant direct avec lui, sinon ça pète hors de la session hibernate
     // OrderColumn : hibernate garde l'ordre de la liste dans une colonne "position", du coup c'est une vraie liste et pas un sac
+    // Fetch SUBSELECT : hibernate va chercher les équipements de tous les étudiants d'un coup dans une seule requête
+    // au lieu d'une requête par étudiant, donc moins de requêtes quand on fait GET /api/students
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "student_required_equipment", joinColumns = @JoinColumn(name = "student_id"))
     @Enumerated(EnumType.STRING)
     @OrderColumn(name = "position")
+    @Fetch(FetchMode.SUBSELECT)
     private List<SeatEquipment> requiredEquipment = new ArrayList<>();
     
     protected Student() {}
