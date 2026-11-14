@@ -3,6 +3,7 @@ package fr.iutinfo.seatingplan.promo;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,4 +58,16 @@ public class PromoController {
 	    }
 	    promoRepository.deleteById(id);
 	}
+	// permet de vider une promo de ses étudiants
+	@DeleteMapping("/{id}/students")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@Transactional
+	public void emptyPromo(@PathVariable Long id) {
+		if (!promoRepository.existsById(id)) {
+			throw new PromoNotFoundException(id);
+		}
+		studentRepository.deleteByPromoId(id);
+	}
+	
+
 }
