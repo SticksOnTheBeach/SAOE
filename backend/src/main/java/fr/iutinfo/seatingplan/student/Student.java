@@ -2,6 +2,7 @@ package fr.iutinfo.seatingplan.student;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import fr.iutinfo.seatingplan.promo.Promo;
@@ -43,11 +44,12 @@ public class Student {
     protected Student() {}
     
     public Student(String firstName, String lastName, Group groupName, List<SeatEquipment> requiredEquipment, Promo promo) {
+        List<SeatEquipment> asked = checkRequiredEquipment(requiredEquipment);
         this.firstName = firstName;
         this.lastName = lastName;
         this.groupName = groupName;
         // copie modifiable : hibernate a besoin d'une vraie liste à lui
-        this.requiredEquipment = new ArrayList<>(requiredEquipment);
+        this.requiredEquipment = new ArrayList<>(asked);
         this.promo = promo;
     }
 
@@ -72,7 +74,8 @@ public class Student {
     
     // utilisé par le PUT : on remplace les besoins de l'étudiant sans le recréer
     public void setRequiredEquipment(List<SeatEquipment> requiredEquipment) {
-        this.requiredEquipment = new ArrayList<>(requiredEquipment);
+        List<SeatEquipment> asked = checkRequiredEquipment(requiredEquipment);
+        this.requiredEquipment = new ArrayList<>(asked);
     }
     
     
@@ -82,9 +85,19 @@ public class Student {
     	return this.requiredEquipment.contains(e);
     }
     
-    // copie non modifiable : personne ne peut rajouter un besoin dans notre dos
+    // copie non modifiable : personne ne peut rajouter un besoin dans notre dos sans passer par la validation
     public List<SeatEquipment> getRequiredEquipment() {
     	return Collections.unmodifiableList(new ArrayList<>(this.requiredEquipment));
     }
     
+    // requiredEquipment null = aucun besoin, c'est pas une erreur. Par contre deux fois le même besoin, ça veut rien dire
+    private static List<SeatEquipment> checkRequiredEquipment(List<SeatEquipment> requiredEquipment) {
+        if (requiredEquipment == null) {
+            return List.of();
+        }
+        if (new HashSet<>(requiredEquipment).size() != requiredEquipment.size()) {
+            throw new IllegalArgumentException("Un étudiant ne peut pas avoir deux fois le même équipement");
+        }
+        return requiredEquipment;
+    }
 }
