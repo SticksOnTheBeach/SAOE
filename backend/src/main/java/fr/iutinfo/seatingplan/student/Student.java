@@ -12,6 +12,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -36,7 +37,8 @@ public class Student {
     // avant on avait juste un boolean needsPowerOutlet, mais du coup à chaque nouveau besoin (pmr, etc...) il fallait
     // rajouter un champ + une règle. Là on a une liste d'équipements, donc rajouter un besoin = rajouter une valeur
     // dans l'enum SeatEquipment et c'est tout, le reste du code bouge pas
-    @ElementCollection
+    // EAGER : on veut les besoins de l'étudiant direct avec lui, sinon ça pète hors de la session hibernate
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "student_required_equipment", joinColumns = @JoinColumn(name = "student_id"))
     @Enumerated(EnumType.STRING)
     private List<SeatEquipment> requiredEquipment = new ArrayList<>();
