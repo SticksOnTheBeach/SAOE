@@ -3,9 +3,10 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 interface SeatData {
-  row: number
-  column: number
-  type: 'AVAILABLE' | 'FORBIDDEN' | 'POWER_OUTLET'
+  row: number;
+  column: number;
+  type: 'AVAILABLE' | 'FORBIDDEN';
+  equipment: string[];
 }
 
 interface RoomState {
