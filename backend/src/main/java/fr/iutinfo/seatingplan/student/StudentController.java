@@ -106,9 +106,11 @@ public class StudentController {
 	            numeroLigne++;
 	            // en gros on ignore les lignes vides
 	            if (!line.isBlank()) {
-	            	String[] columns = line.split(";");
-	            	if (columns.length != 4) {
-	                    throw new InvalidCsvException("Ligne " + numeroLigne + " : 4 colonnes attendues, " + columns.length + " trouvées");
+	            	// split avec -1 sinon java jette les colonnes vides de la fin, donc "a;b;c;d;" perdrait la 5eme
+	            	String[] columns = line.split(";", -1);
+	            	// 4 colonnes = l'ancien format "nom;prenom;groupe;prise", 5 = le nouveau avec la colonne pmr en plus
+	            	if (columns.length != 4 && columns.length != 5) {
+	                    throw new InvalidCsvException("Ligne " + numeroLigne + " : 4 ou 5 colonnes attendues, " + columns.length + " trouvées");
 	                }
 	            	
 	            	String lastName = columns[0].trim();
@@ -119,6 +121,9 @@ public class StudentController {
 	                List<SeatEquipment> requiredEquipment = new ArrayList<>();
 	                if (columns[3].trim().equalsIgnoreCase("oui")) {
 	                	requiredEquipment.add(SeatEquipment.POWER_OUTLET);
+	                }
+	                if (columns.length == 5 && columns[4].trim().equalsIgnoreCase("oui")) {
+	                	requiredEquipment.add(SeatEquipment.PRM);
 	                }
 
 	                Group group;
