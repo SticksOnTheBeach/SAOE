@@ -1,6 +1,9 @@
 package fr.iutinfo.seatingplan.room;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,4 +41,21 @@ class SeatTest {
 
         assertThat(seat.isNeighborOf(seat)).isFalse();
     }
+
+    // deux fois le même équipement ça veut rien dire, donc on refuse
+    @Test
+    void rejectsTheSameEquipmentTwice() {
+        assertThatThrownBy(() -> new Seat("a", 0, 0, SeatType.AVAILABLE,
+                List.of(SeatEquipment.PRM, SeatEquipment.PRM)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // une place interdite c'est une place où personne s'assoit, donc lui mettre une prise ça sert à rien
+    @Test
+    void rejectsEquipmentOnAForbiddenSeat() {
+        assertThatThrownBy(() -> new Seat("a", 0, 0, SeatType.FORBIDDEN,
+                List.of(SeatEquipment.POWER_OUTLET)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
 }
