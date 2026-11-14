@@ -9,4 +9,5 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 	List<Student> findByLastNameIgnoreCase(String lastName);
 	List<Student> findByFirstName(String firstName);
 	long countByPromoId(Long promoId);
+	void deleteByPromoId(Long promoId);
 }
