@@ -2,12 +2,16 @@ import { useLocation } from 'react-router'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+export type SeatEquipment = 'PMR' | 'POWER_OUTLET';
+export type SeatType = 'AVAILABLE' | 'FORBIDDEN';
+
 interface SeatData {
   row: number;
   column: number;
-  type: 'AVAILABLE' | 'FORBIDDEN';
-  equipment: string[];
+  type: SeatType;
+  equipment: SeatEquipment[];
 }
+
 
 interface RoomState {
   id?: string
@@ -17,11 +21,12 @@ interface RoomState {
   seats?: SeatData[]
 }
 
-type CellStatus = 'disponible' | 'interdite' | 'prise' | 'couloir'
+type CellStatus = 'disponible' | 'interdite' | 'prise' | 'pmr' | 'couloir'
 const STATUS_COLORS: Record<CellStatus, string> = {
   disponible: 'bg-[#AAD690]',
   interdite: 'bg-[#A84747]',
   prise: 'bg-[#EDEB87]',
+  pmr: 'bg-[#87CEEB]',
   couloir: 'bg-[#FCFCFC] border-2 border-[#F0F0F0]',
 }
 
@@ -46,23 +51,25 @@ function ClassDispositionPage() {
       .then((room: RoomState | null) => {
         if (!room?.seats) return
         const initialStatuses: Record<string, CellStatus> = {}
-        const seatMap = new Map<string, SeatData['type']>()
+
+
+        // On stocke tout l'objet SeatData pour lire type ET equipment
+        const seatMap = new Map<string, SeatData>()
         for (const s of room.seats) {
-          seatMap.set(`${s.row}-${s.column}`, s.type)
+          seatMap.set(`${s.row}-${s.column}`, s)
         }
+
         for (let r = 0; r < Number(data.rows); r++) {
           for (let c = 0; c < Number(data.columns); c++) {
             const key = `${r}-${c}`
-            const seatType = seatMap.get(key)
-            if (!seatType) {
-              if (r < room.rows && c < room.columns) {
-                initialStatuses[key] = 'couloir'
-              } else {
-                initialStatuses[key] = 'disponible'
-              }
-            } else if (seatType === 'FORBIDDEN') {
+            const seat = seatMap.get(key)
+
+            if (!seat) {
+              initialStatuses[key] = (r < room.rows && c < room.columns) ? 'couloir' : 'disponible'
+            } else if (seat.type === 'FORBIDDEN') {
               initialStatuses[key] = 'interdite'
-            } else if (seatType === 'POWER_OUTLET') {
+            } else if (seat.equipment?.includes('POWER_OUTLET')) {
+              // On vérifie la présence dans la liste equipment
               initialStatuses[key] = 'prise'
             } else {
               initialStatuses[key] = 'disponible'
@@ -161,14 +168,18 @@ function ClassDispositionPage() {
         const status = cellStatuses[`${r}-${c}`] ?? 'disponible'
         if (status === 'couloir') continue
 
-        const type: SeatData['type'] =
-          status === 'interdite'
-            ? 'FORBIDDEN'
-            : status === 'prise'
-              ? 'POWER_OUTLET'
-              : 'AVAILABLE'
+        // 1. Détermination du SeatType Java
+        // Tout ce qui n'est pas 'interdite' (donc 'disponible', 'prise' ou 'pmr') est un siège 'AVAILABLE'
+        const type: SeatType = status === 'interdite' ? 'FORBIDDEN' : 'AVAILABLE';
 
-        seats.push({ row: r, column: c, type })
+        // 2. Détermination de la List<SeatEquipment> Java
+        const equipment: SeatEquipment[] =
+            status === 'prise'
+                ? ['POWER_OUTLET']
+                : status === 'pmr'
+                    ? ['PMR']
+                    : [];
+        seats.push({ row: r, column: c, type, equipment })
       }
     }
 
