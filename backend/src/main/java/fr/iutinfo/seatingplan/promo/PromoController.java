@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import fr.iutinfo.seatingplan.room.RoomNotFoundException;
 import fr.iutinfo.seatingplan.student.Student;
 import fr.iutinfo.seatingplan.student.StudentRepository;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 @RestController
 @RequestMapping("/api/promos")
@@ -24,6 +29,9 @@ public class PromoController {
 	
 	private PromoRepository promoRepository;
 	private StudentRepository studentRepository;
+	
+	public record PromoCreateRequest(@NotBlank @Size(max = 50) String name) {}
+
 	
 	public PromoController(PromoRepository promoRepository, StudentRepository studentRepository) {
 		this.promoRepository = promoRepository;
@@ -70,4 +78,13 @@ public class PromoController {
 	}
 	
 
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public Promo create(@Valid @RequestBody PromoCreateRequest request) {
+	    String name = request.name().trim();
+	    if (promoRepository.existsByNameIgnoreCase(name)) {
+	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Une promotion nommée " + name + " existe déjà");
+	    }
+	    return promoRepository.save(new Promo(name));
+	}
 }
