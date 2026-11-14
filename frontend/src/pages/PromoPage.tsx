@@ -43,6 +43,7 @@ const PromoPage = () => {
   const [editingId, setEditingId] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const [newPromoName, setNewPromoName] = useState('')
   // unsaved changes, by student id (only the students the user touched)
   const [drafts, setDrafts] = useState<Record<string, Draft>>({})
 
@@ -98,6 +99,7 @@ const PromoPage = () => {
     setMessage('')
     setError('')
     setLoading(false)
+    setNewPromoName('')
   }
 
   // closing the edit dialog throws the unsaved changes away
@@ -198,6 +200,41 @@ const PromoPage = () => {
       setLoading(false)
     }
   }
+  async function savePromo() {
+    if (selectedPromo) return   // edit mode: see saveStudents
+    const name = newPromoName.trim()
+    if (!name) {
+      setError('Le nom de la promotion est obligatoire')
+      return
+    }
+    setError('')
+    setMessage('')
+    setLoading(true)
+    try {
+      const res = await fetch('/api/promos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      if (res.ok) {
+        const created: Promo = await res.json()
+        await fetchPromos()
+        // the dialog switches to edit mode, so a CSV can be imported right away
+        setSelectedPromo(created)
+        setEditingId(true)
+        setNewPromoName('')
+        setMessage(`Promotion ${created.name} créée : tu peux importer un CSV`)
+      } else {
+        setError(await readError(res))
+      }
+    } catch (err) {
+      console.error('Erreur lors de la création de la promotion : ', err)
+      setError('Le serveur ne répond pas')
+    } finally {
+      setLoading(false)
+    }
+  }
+
 
   return (
       <div>
@@ -240,8 +277,15 @@ const PromoPage = () => {
                       title={selectedPromo ? '' : "Enregistre d'abord la promotion"}
                       className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Importer un CSV</button>
               <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={importCsv} className="hidden" />
-              <button type="button" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Enregistrer la promotion</button>
+              <button type="button" onClick={savePromo} disabled={loading || !!selectedPromo}
+                      title={selectedPromo ? 'Les étudiants ne sont pas encore enregistrables' : ''}
+                      className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Enregistrer la promotion</button>
             </div>
+            {!selectedPromo && (
+                <input type="text" value={newPromoName} onChange={(e) => setNewPromoName(e.target.value)}
+                       placeholder="Nom de la promotion (ex : BUT1)" maxLength={50}
+                       className='mt-3 w-full border-1 border-gray-300 rounded-md px-3 py-1 hover:bg-[#7A1B1B]' />
+            )}
             {error && <p className='mt-2 font-bold text-red-300'>{error}</p>}
             {message && <p className='mt-2 font-bold text-green-300'>{message}</p>}
             <div className='flex flex-1 min-h-0 gap-2 mt-2'>
