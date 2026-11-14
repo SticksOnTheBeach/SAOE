@@ -58,4 +58,41 @@ class SeatTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    // par contre une place interdite SANS équipement, ça c'est normal
+    @Test
+    void acceptsAForbiddenSeatWithoutEquipment() {
+        Seat seat = new Seat("a", 0, 0, SeatType.FORBIDDEN, List.of());
+
+        assertThat(seat.isUsable()).isFalse();
+        assertThat(seat.getEquipment()).isEmpty();
+    }
+
+    // equipment null = aucun équipement, ça doit pas péter
+    @Test
+    void nullEquipmentBecomesAnEmptyList() {
+        Seat seat = new Seat("a", 0, 0, SeatType.AVAILABLE, null);
+
+        assertThat(seat.getEquipment()).isEmpty();
+        assertThat(seat.has(SeatEquipment.PRM)).isFalse();
+    }
+
+    @Test
+    void keepsItsEquipment() {
+        Seat seat = new Seat("a", 0, 0, SeatType.AVAILABLE,
+                List.of(SeatEquipment.PRM, SeatEquipment.POWER_OUTLET));
+
+        assertThat(seat.has(SeatEquipment.PRM)).isTrue();
+        assertThat(seat.has(SeatEquipment.POWER_OUTLET)).isTrue();
+    }
+
+    // le getter renvoie une liste non modifiable, sinon n'importe qui pourrait rajouter un
+    // équipement sans passer par la validation
+    @Test
+    void getEquipmentCannotBeModified() {
+        Seat seat = new Seat("a", 0, 0, SeatType.AVAILABLE, List.of(SeatEquipment.PRM));
+
+        assertThatThrownBy(() -> seat.getEquipment().add(SeatEquipment.POWER_OUTLET))
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
 }
