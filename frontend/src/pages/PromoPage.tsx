@@ -63,6 +63,22 @@ const PromoPage = () => {
     setDrafts((prev) => ({ ...prev, [student.id]: change(prev[student.id] ?? baseDraft(student)) }))
   }
 
+  // Plugs the "Aménagements" dropdown (a web component) on the draft of one student.
+  // Only the item that triggered the event is applied, so a change fired at startup does nothing harmful.
+  function bindEquipment(student: Student) {
+    return (el: Element | null) => {
+      if (!el) return
+          ;(el as HTMLElement).onchange = (ev: Event) => {
+        const detail = (ev as CustomEvent).detail
+        if (!detail || (detail.value !== 'PRM' && detail.value !== 'POWER_OUTLET')) return
+        const value = detail.value as Equipment
+        updateDraft(student, (d) => {
+          const without = d.requiredEquipment.filter((e) => e !== value)
+          return { ...d, requiredEquipment: detail.selected ? [...without, value] : without }
+        })
+      }
+    }
+  }
 
   // list : the students to read the groups from (after an import, the `students` state is not up to date yet)
   function showGroups(promo: Promo, list: Student[] = students) {
@@ -282,7 +298,7 @@ const PromoPage = () => {
                                     </select>
                                   </td>
                                   <td className='px-2'>
-                                    <smart-drop-down-list selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
+                                    <smart-drop-down-list ref={bindEquipment(student)} selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
                                       <smart-list-item value="1">Tiers Temps</smart-list-item>
                                       <smart-list-item value="POWER_OUTLET" selected={(student.requiredEquipment ?? []).includes('POWER_OUTLET')}>Prise Electrique</smart-list-item>
                                       <smart-list-item value="PRM" selected={(student.requiredEquipment ?? []).includes('PRM')}>PMR</smart-list-item>
