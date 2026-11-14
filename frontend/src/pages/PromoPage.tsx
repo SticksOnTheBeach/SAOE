@@ -166,14 +166,18 @@ const PromoPage = () => {
   async function deletePromo() {
     if (!deletingId) return
     setDeleteError('')
+    // The user already confirmed in the dialog: a promo that contains students is deleted with them.
+    // Without the flag the backend answers 409, which also protects against a stale student count.
+    const withStudents = (studentCounts[deletingId] ?? 0) > 0
     try {
-      const res = await fetch(`/api/promos/${deletingId}`, {
+      const res = await fetch(`/api/promos/${deletingId}${withStudents ? '?withStudents=true' : ''}`, {
         method: 'DELETE',
       })
       if (res.ok) {
         await fetchPromos()
+        await fetchStudentCounts()
       } else {
-        // e.g. 409: the promo still contains students
+        // e.g. 409: students were added since the page was loaded
         setDeleteError(await readError(res))
       }
     } catch (err) {
@@ -324,6 +328,8 @@ const PromoPage = () => {
     }
   }
 
+  // number of students of the promo the user is about to delete (shown in the confirmation dialog)
+  const deletingCount = deletingId ? (studentCounts[deletingId] ?? 0) : 0
 
   return (
       <div>
@@ -467,9 +473,15 @@ const PromoPage = () => {
             <div className='flex justify-between'>
               <div>
                 <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer cette promotion ?</h1>
-                <h2>Cette action est définitive.</h2>
+                <h2>
+                  {deletingCount > 0
+                      ? `Elle contient ${deletingCount} étudiant(s) : ils seront supprimés avec elle. Cette action est définitive.`
+                      : 'Cette action est définitive.'}
+                </h2>
                 <div className='pt-5 flex gap-5'>
-                  <button type="button" onClick={deletePromo} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
+                  <button type="button" onClick={deletePromo} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>
+                    {deletingCount > 0 ? 'Supprimer avec les étudiants' : 'Supprimer'}
+                  </button>
                   <button type="button" onClick={() => dialogConfirmPromo.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
                 </div>
               </div>
