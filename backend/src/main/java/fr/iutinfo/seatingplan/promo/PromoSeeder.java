@@ -1,5 +1,7 @@
 package fr.iutinfo.seatingplan.promo;
 
+import java.util.List;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -14,10 +16,10 @@ public class PromoSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (promos.count() == 0) {
-            promos.save(new Promo("BUT1"));
-            promos.save(new Promo("BUT2"));
-            promos.save(new Promo("BUT3"));
+        for (String name : List.of("BUT1", "BUT2", "BUT3")) {
+            if (!promos.existsByName(name)) {
+                promos.save(new Promo(name));
+            }
         }
     }
 }
