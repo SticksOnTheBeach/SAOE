@@ -1,1 +1,43 @@
 @import "tailwindcss";
+
+/* Preserve the demo's automatic height while fitting the table cell. */
+smart-drop-down-list.amenities-dropdown {
+  width: 100%;
+  min-width: 200px;
+  min-height: 20px;
+  height: 25px;
+  background: transparent;
+}
+
+/* Fill the automatic height instead of exposing the host below the field. */
+.amenities-dropdown > .smart-container,
+.amenities-dropdown > .smart-container > .smart-content,
+.amenities-dropdown > .smart-container > .smart-content > .smart-buttons-container {
+  min-height: inherit;
+}
+
+.amenities-dropdown .smart-buttons-container {
+  align-items: stretch;
+}
+
+.amenities-dropdown .smart-buttons-container .smart-action-button {
+  height: auto;
+  align-self: stretch;
+}
+
+/* Keep the dropdown button clickable without displaying an arrow. */
+.amenities-dropdown .smart-drop-down-button .smart-drop-down-button-icon {
+  display: none;
+}
+
+/* The saved demo does not include the smart-icons font. */
+.amenities-dropdown smart-list-item[display-mode="checkBox"][selected] .smart-input::after {
+  content: "";
+  width: 6px;
+  height: 11px;
+  margin: 0 auto;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  font-family: sans-serif;
+}
