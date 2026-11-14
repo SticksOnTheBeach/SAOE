@@ -51,14 +51,17 @@ class RoomTest {
         assertThat(room.getSeats()).hasSize(2);
     }
 
-    /*@Test
+    // POWER_OUTLET c'est plus un SeatType mais un équipement, du coup la place est AVAILABLE
+    // et elle a juste une prise dans sa liste d'équipements
+    @Test
     void usableSeatCountIgnoresForbiddenSeats() {
         Room room = new Room("t", "Test", 1, 3, List.of(
-                new Seat("a", 0, 0, SeatType.AVAILABLE),
-                new Seat("b", 0, 1, SeatType.FORBIDDEN),
-                new Seat("c", 0, 2, SeatType.POWER_OUTLET)));
+                new Seat("a", 0, 0, SeatType.AVAILABLE, List.of()),
+                new Seat("b", 0, 1, SeatType.FORBIDDEN, List.of()),
+                new Seat("c", 0, 2, SeatType.AVAILABLE, List.of(SeatEquipment.POWER_OUTLET))));
 
         assertThat(room.getUsableSeatCount()).isEqualTo(2);
-        assertThat(room.getOutletSeatCount()).isEqualTo(1);
-    }*/
+        assertThat(room.getPowerOutletSeatCount()).isEqualTo(1);
+    }
+
 }
