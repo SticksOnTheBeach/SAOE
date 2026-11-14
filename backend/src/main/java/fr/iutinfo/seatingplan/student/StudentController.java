@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import fr.iutinfo.seatingplan.promo.Promo;
 import fr.iutinfo.seatingplan.promo.PromoNotFoundException;
 import fr.iutinfo.seatingplan.promo.PromoRepository;
+import fr.iutinfo.seatingplan.room.SeatEquipment;
 import fr.iutinfo.seatingplan.student.Exception.StudentNotFoundException;
 
 @RestController
@@ -57,7 +58,7 @@ public class StudentController {
 	    	 student.setFirstName(newStudent.getFirstName());
 	    	 student.setLastName(newStudent.getLastName());
 	    	 student.setGroupName(newStudent.getGroupName());
-	    	 student.setNeedsPowerOutlet(newStudent.needsPowerOutlet());
+	    	 student.setRequiredEquipment(newStudent.getRequiredEquipment());
 	        return studentRepository.save(student);
 	      })
 	      .orElseGet(() -> {
@@ -113,7 +114,12 @@ public class StudentController {
 	            	String lastName = columns[0].trim();
 	                String firstName = columns[1].trim();
 	                String groupe = columns[2].trim().toUpperCase();
-	                boolean needsOutlet = columns[3].trim().equalsIgnoreCase("oui");
+	                
+	                // on construit la liste des besoins de l'étudiant : une colonne à "oui" = un équipement en plus
+	                List<SeatEquipment> requiredEquipment = new ArrayList<>();
+	                if (columns[3].trim().equalsIgnoreCase("oui")) {
+	                	requiredEquipment.add(SeatEquipment.POWER_OUTLET);
+	                }
 
 	                Group group;
 	                try {
@@ -122,7 +128,7 @@ public class StudentController {
 	                    throw new InvalidCsvException("Ligne " + numeroLigne + " : groupe inconnu '" + groupe + "'");
 	                }
 
-	                students.add(new Student(firstName, lastName, group, needsOutlet, promo));
+	                students.add(new Student(firstName, lastName, group, requiredEquipment, promo));
 	            }
 	            // 2. découper, valider, créer le Student, l'ajouter à la liste
 	        }
