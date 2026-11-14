@@ -75,7 +75,11 @@ public class Student {
     // utilisé par le PUT : on remplace les besoins de l'étudiant sans le recréer
     public void setRequiredEquipment(List<SeatEquipment> requiredEquipment) {
         List<SeatEquipment> asked = checkRequiredEquipment(requiredEquipment);
-        this.requiredEquipment = new ArrayList<>(asked);
+        // on copie avant de vider, au cas où on nous passe la liste de l'étudiant lui même
+        List<SeatEquipment> wanted = new ArrayList<>(asked);
+        // clear + addAll sur la même liste, comme ça hibernate suit les changements
+        this.requiredEquipment.clear();
+        this.requiredEquipment.addAll(wanted);
     }
     
     
