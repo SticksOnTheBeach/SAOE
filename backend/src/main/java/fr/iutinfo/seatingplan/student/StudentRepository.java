@@ -8,5 +8,5 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 	List<Student> findByPromoId(Long promoId);
 	List<Student> findByLastNameIgnoreCase(String lastName);
 	List<Student> findByFirstName(String firstName);
-
+	long countByPromoId(Long promoId);
 }
