@@ -95,4 +95,24 @@ class SeatTest {
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 
+    @Test
+    void updateReplacesTypeAndEquipment() {
+        Seat seat = new Seat("a", 0, 0, SeatType.AVAILABLE, List.of(SeatEquipment.PRM));
+
+        seat.update(SeatType.AVAILABLE, List.of(SeatEquipment.POWER_OUTLET));
+
+        assertThat(seat.getEquipment()).containsExactly(SeatEquipment.POWER_OUTLET);
+    }
+
+    // si l'update est refusé, la place doit rester exactement comme avant
+    @Test
+    void updateRejectsEquipmentOnAForbiddenSeat() {
+        Seat seat = new Seat("a", 0, 0, SeatType.AVAILABLE, List.of(SeatEquipment.PRM));
+
+        assertThatThrownBy(() -> seat.update(SeatType.FORBIDDEN, List.of(SeatEquipment.PRM)))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        assertThat(seat.getType()).isEqualTo(SeatType.AVAILABLE);
+        assertThat(seat.getEquipment()).containsExactly(SeatEquipment.PRM);
+    }
 }
