@@ -64,4 +64,34 @@ class RoomTest {
         assertThat(room.getPowerOutletSeatCount()).isEqualTo(1);
     }
 
+    // une place peut avoir plusieurs équipements à la fois, et elle compte dans les deux compteurs
+    @Test
+    void countsEachEquipmentSeparately() {
+        Room room = new Room("t", "Test", 1, 3, List.of(
+                new Seat("a", 0, 0, SeatType.AVAILABLE, List.of(SeatEquipment.PRM, SeatEquipment.POWER_OUTLET)),
+                new Seat("b", 0, 1, SeatType.AVAILABLE, List.of(SeatEquipment.PRM)),
+                new Seat("c", 0, 2, SeatType.AVAILABLE, List.of())));
+
+        assertThat(room.getPrmSeatCount()).isEqualTo(2);
+        assertThat(room.getPowerOutletSeatCount()).isEqualTo(1);
+        assertThat(room.countWith(SeatEquipment.POWER_OUTLET)).isEqualTo(1);
+    }
+
+    // update garde la place qui était déjà sur la case (même id) et change juste son type/ses équipements
+    @Test
+    void updateKeepsTheExistingSeatOfACellAndChangesItsEquipment() {
+        Room room = new Room("t", "Test", 1, 2, List.of(
+                new Seat("a", 0, 0, SeatType.AVAILABLE, List.of()),
+                new Seat("b", 0, 1, SeatType.AVAILABLE, List.of())));
+
+        room.update("Test", 1, 2, List.of(
+                new Seat("nouveau1", 0, 0, SeatType.AVAILABLE, List.of(SeatEquipment.PRM)),
+                new Seat("nouveau2", 0, 1, SeatType.FORBIDDEN, List.of())));
+
+        Seat first = room.getSeats().stream().filter(s -> s.getColumn() == 0).findFirst().orElseThrow();
+        assertThat(first.getId()).isEqualTo("a");
+        assertThat(first.getEquipment()).containsExactly(SeatEquipment.PRM);
+        assertThat(room.getPrmSeatCount()).isEqualTo(1);
+        assertThat(room.getUsableSeatCount()).isEqualTo(1);
+    }
 }
