@@ -154,15 +154,15 @@ function RoomPage() {
       <div>
         <h1 className='text-4xl text-center pt-5 text-[#4D4D4D]'>Gestionnaire des salles</h1>
         <div className="grid grid-cols-5 gap-10 px-20 py-10">
-          <div onClick={openCreate} className="cursor-pointer flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
+          <div onClick={openCreate} className="cursor-pointer flex items-center justify-center aspect-[4/3] rounded-4xl bg-gray-200 hover:bg-gray-300">
             <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
           </div>
           {rooms.map((room) => (
-              <div onClick={() => console.log("Salle ", room.name, " selectionnée")} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-square rounded-4xl bg-gray-200 hover:bg-gray-300">
+              <div onClick={() => console.log("Salle ", room.name, " selectionnée")} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] rounded-4xl bg-gray-200 hover:bg-gray-300">
                 <div>
                   <p className="text-4xl text-center text-[#4D4D4D] select-none">{room.name}</p>
                   <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
-                  <div className="flex justify-between mt-20 invisible group-hover:visible gap-2">
+                  <div className="flex justify-center mt-6 invisible group-hover:visible gap-2">
                     <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
                     <Link to="/ClassDisposition" state={room}><img src="/file-earmark-text.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
                     <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
@@ -216,7 +216,7 @@ function RoomPage() {
                 </div>
 
                 <div className='flex-2 border-1 border-gray-300 rounded-md pt-3 overflow-auto'>
-                  <h2 className='text-center text-2xl'>Apperçu du plan de classe <br /><span className='text-lg'>(les modifications se font à l'étape suivante)</span></h2>
+                  <h2 className='text-center text-2xl'>Aperçu du plan de classe <br /><span className='text-lg'>(les modifications se font à l'étape suivante)</span></h2>
                   <div className='flex flex-col gap-2 p-10 w-max mx-auto'>
                     {Array.from({ length: Math.max(0, Number(planX)) }, (_, column) => (
                         <div key={column} className='flex gap-2'>
