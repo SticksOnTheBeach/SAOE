@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import fr.iutinfo.seatingplan.room.RoomNotFoundException;
 import fr.iutinfo.seatingplan.student.Student;
 import fr.iutinfo.seatingplan.student.StudentRepository;
 import jakarta.validation.Valid;
@@ -53,7 +52,7 @@ public class PromoController {
 		promoRepository.findById(id).orElseThrow(() -> new PromoNotFoundException(id));		
 		return studentRepository.findByPromoId(id);
 	}
-	
+	/* MÉTHODE PERMETTANT DE SUPPRIMER UNE PROMO MAIS PAS DE LA VIDER, SI LA PROMO CONTIENT DES ELÈVES CETTE DERNIÈRE NE PEUT ÊTRE SUPPRIMÉE */
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deletePromo(@PathVariable Long id) {
