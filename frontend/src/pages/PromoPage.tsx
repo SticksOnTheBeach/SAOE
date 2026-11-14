@@ -26,6 +26,8 @@ interface Draft {
   requiredEquipment: Equipment[]
 }
 
+const sameEquipment = (a: Equipment[], b: Equipment[]) => [...a].sort().join() === [...b].sort().join()
+
 const PromoPage = () => {
   const navigate = useNavigate()
   const [promos, setPromos] = useState<Promo[]>([])
@@ -63,6 +65,18 @@ const PromoPage = () => {
   function updateDraft(student: Student, change: (d: Draft) => Draft) {
     setDrafts((prev) => ({ ...prev, [student.id]: change(prev[student.id] ?? baseDraft(student)) }))
   }
+
+  function isDirty(student: Student) {
+    const d = drafts[student.id]
+    return !!d && (
+        d.firstName !== student.firstName ||
+        d.lastName !== student.lastName ||
+        d.groupName !== student.groupName ||
+        !sameEquipment(d.requiredEquipment, student.requiredEquipment ?? [])
+    )
+  }
+
+  const dirtyStudents = students.filter(isDirty)
 
   // Plugs the "Aménagements" dropdown (a web component) on the draft of one student.
   // Only the item that triggered the event is applied, so a change fired at startup does nothing harmful.
@@ -200,6 +214,56 @@ const PromoPage = () => {
       setLoading(false)
     }
   }
+  // edit mode: sends one PUT per modified student
+  async function saveStudents() {
+    if (!selectedPromo || dirtyStudents.length === 0) return
+    const blank = dirtyStudents.some((s) => !drafts[s.id].firstName.trim() || !drafts[s.id].lastName.trim())
+    if (blank) {
+      setError('Le prénom et le nom sont obligatoires')
+      return
+    }
+    setError('')
+    setMessage('')
+    setLoading(true)
+    try {
+      const saved: string[] = []
+      const failures: string[] = []
+      for (const student of dirtyStudents) {
+        const d = drafts[student.id]
+        const res = await fetch(`/api/students/${student.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: d.firstName.trim(),
+            lastName: d.lastName.trim(),
+            groupName: d.groupName,
+            requiredEquipment: d.requiredEquipment,
+          }),
+        })
+        if (res.ok) {
+          saved.push(student.id)
+        } else {
+          failures.push(`${d.firstName} ${d.lastName} : ${await readError(res)}`)
+        }
+      }
+      // keep the drafts of the students that failed, so nothing typed is lost
+      setDrafts((prev) => {
+        const next = { ...prev }
+        for (const id of saved) delete next[id]
+        return next
+      })
+      const data = await fetchStudentCounts()
+      if (data) setGroupsOfPromo(showGroups(selectedPromo, data))
+      if (failures.length > 0) setError(failures.join(' | '))
+      if (saved.length > 0) setMessage(`${saved.length} étudiant(s) modifié(s)`)
+    } catch (err) {
+      console.error("Erreur lors de l'enregistrement des étudiants : ", err)
+      setError('Le serveur ne répond pas')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function savePromo() {
     if (selectedPromo) return   // edit mode: see saveStudents
     const name = newPromoName.trim()
@@ -277,8 +341,9 @@ const PromoPage = () => {
                       title={selectedPromo ? '' : "Enregistre d'abord la promotion"}
                       className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Importer un CSV</button>
               <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={importCsv} className="hidden" />
-              <button type="button" onClick={savePromo} disabled={loading || !!selectedPromo}
-                      title={selectedPromo ? 'Les étudiants ne sont pas encore enregistrables' : ''}
+              <button type="button" onClick={selectedPromo ? saveStudents : savePromo}
+                      disabled={loading || (!!selectedPromo && dirtyStudents.length === 0)}
+                      title={selectedPromo && dirtyStudents.length === 0 ? 'Aucune modification à enregistrer' : ''}
                       className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Enregistrer la promotion</button>
             </div>
             {!selectedPromo && (
