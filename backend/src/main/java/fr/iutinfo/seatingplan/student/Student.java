@@ -1,12 +1,13 @@
 package fr.iutinfo.seatingplan.student;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.iutinfo.seatingplan.promo.Promo;
 import fr.iutinfo.seatingplan.room.SeatEquipment;
@@ -44,30 +45,23 @@ public class Student {
     @Enumerated(EnumType.STRING)
     private Group groupName; // pour que ça soit le groupe donc G1A et ps un entier qui dis qu'il s'agit du groupe 0 donc G1A, car sinon si on change l'ordre bah c'est relou donc voilà
 
-    // avant on avait juste un boolean needsPowerOutlet, mais du coup à chaque nouveau besoin (pmr, etc...) il fallait
-    // rajouter un champ + une règle. Là on a une liste d'équipements, donc rajouter un besoin = rajouter une valeur
-    // dans l'enum SeatEquipment et c'est tout, le reste du code bouge pas
-    // EAGER : on veut les besoins de l'étudiant direct avec lui, sinon ça pète hors de la session hibernate
-    // OrderColumn : hibernate garde l'ordre de la liste dans une colonne "position", du coup c'est une vraie liste et pas un sac
-    // Fetch SUBSELECT : hibernate va chercher les équipements de tous les étudiants d'un coup dans une seule requête
-    // au lieu d'une requête par étudiant, donc moins de requêtes quand on fait GET /api/students
+    // Les particularités de l'étudiant (vide = aucune).
+    // SUBSELECT : une seule requête pour charger les particularités de tous les étudiants d'une liste.
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "student_required_equipment", joinColumns = @JoinColumn(name = "student_id"))
+    @CollectionTable(name = "student_particularity", joinColumns = @JoinColumn(name = "student_id"))
     @Enumerated(EnumType.STRING)
     @OrderColumn(name = "position")
     @Fetch(FetchMode.SUBSELECT)
-    private List<SeatEquipment> requiredEquipment = new ArrayList<>();
-    
+    private List<StudentType> particularities = new ArrayList<>();    
     
     protected Student() {}
     
-    public Student(String firstName, String lastName, Group groupName, List<SeatEquipment> requiredEquipment, Promo promo) {
-        List<SeatEquipment> asked = checkRequiredEquipment(requiredEquipment);
+    public Student(String firstName, String lastName, Group groupName, List<StudentType> particularities, Promo promo) {
+    	
         this.firstName = firstName;
         this.lastName = lastName;
         this.groupName = groupName;
-        // copie modifiable : hibernate a besoin d'une vraie liste à lui
-        this.requiredEquipment = new ArrayList<>(asked);
+        setParticularities(particularities);
         this.promo = promo;
     }
     
@@ -78,6 +72,20 @@ public class Student {
     public String getLastName() { return this.lastName; }
     public Group getGroupName() { return this.groupName; }
     public Promo getPromo() { return this.promo; }
+    public List<StudentType> getParticularities() { 
+    	return List.copyOf(this.particularities); 
+    }
+    
+    // En gros c'est ce que la place doit avoir pour cet étudiant, déduit de ses particularités (on gère les différents cas et contraintes avec timefold)
+    // Calculé, pas stocké : @JsonIgnore pour ne pas l'envoyer au front.
+    @JsonIgnore
+    public List<SeatEquipment> getRequiredEquipment() {
+        return this.particularities.stream()
+                .map(StudentType::requiredEquipment)
+                .flatMap(java.util.Optional::stream)
+                .distinct()
+                .toList();
+    }
     
     
     public void setFirstName(String firstName) {
@@ -93,38 +101,21 @@ public class Student {
     }
     
     // utilisé par le PUT : on remplace les besoins de l'étudiant sans le recréer
-    public void setRequiredEquipment(List<SeatEquipment> required) {
-        // copie d'abord : on peut nous renvoyer notre propre liste
-        List<SeatEquipment> wanted = (required == null) ? new ArrayList<>() : new ArrayList<>(required);
-        if (new HashSet<>(wanted).size() != wanted.size()) {
-            throw new IllegalArgumentException("A student cannot need the same equipment twice");
-        }
-        this.requiredEquipment.clear();
-        this.requiredEquipment.addAll(wanted);
+    public void setParticularities(List<StudentType> particularities) {
+        // copie d'abord (on peut nous renvoyer notre propre liste) ; si oui les doublons sont ignorés :
+        // le client peut écrire la même particularité dans deux colonnes
+        List<StudentType> wanted = (particularities == null) ? new ArrayList<>() : new ArrayList<>(new LinkedHashSet<>(particularities));
+        this.particularities.clear();
+        this.particularities.addAll(wanted);
     }
     
     
 
     // est ce que l'étudiant a besoin de cet équipement là ?
     public boolean needs(SeatEquipment e) {
-    	return this.requiredEquipment.contains(e);
+    	return getRequiredEquipment().contains(e);
     }
     
-    // copie non modifiable : personne ne peut rajouter un besoin dans notre dos sans passer par la validation
-    public List<SeatEquipment> getRequiredEquipment() {
-    	return Collections.unmodifiableList(new ArrayList<>(this.requiredEquipment));
-    }
-    
-    // requiredEquipment null = aucun besoin, c'est pas une erreur. Par contre deux fois le même besoin, ça veut rien dire
-    private static List<SeatEquipment> checkRequiredEquipment(List<SeatEquipment> requiredEquipment) {
-        if (requiredEquipment == null) {
-            return List.of();
-        }
-        if (new HashSet<>(requiredEquipment).size() != requiredEquipment.size()) {
-            throw new IllegalArgumentException("Un étudiant ne peut pas avoir deux fois le même équipement");
-        }
-        return requiredEquipment;
-    }
     
     
 }
