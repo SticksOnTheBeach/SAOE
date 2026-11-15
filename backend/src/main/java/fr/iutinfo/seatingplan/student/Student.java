@@ -11,6 +11,7 @@ import org.hibernate.annotations.FetchMode;
 import fr.iutinfo.seatingplan.promo.Promo;
 import fr.iutinfo.seatingplan.room.SeatEquipment;
 import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,6 +33,8 @@ public class Student {
     private String lastName;
     
     // Tiers temps : information sur l'étudiant, pas un besoin de place (la place n'a rien à fournir).
+    // default false : sans ça, Hibernate ne peut pas ajouter la colonne NOT NULL à une table qui contient déjà des étudiants.
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean extraTime = false;
     
     @ManyToOne
