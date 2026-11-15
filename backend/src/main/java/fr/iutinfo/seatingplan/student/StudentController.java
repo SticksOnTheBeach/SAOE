@@ -126,6 +126,8 @@ public class StudentController {
 	                if (columns.length >= 5 && columns[4].trim().equalsIgnoreCase("oui")) {
 	                	requiredEquipment.add(SeatEquipment.PRM);
 	                }
+	                // le tiers temps n'est pas un équipement de place : c'est un booléen sur l'étudiant
+	                boolean extraTime = columns.length == 6 && columns[5].trim().equalsIgnoreCase("oui");
 
 	                Group group;
 	                try {
@@ -134,7 +136,9 @@ public class StudentController {
 	                    throw new InvalidCsvException("Ligne " + numeroLigne + " : groupe inconnu '" + groupe + "'");
 	                }
 
-	                students.add(new Student(firstName, lastName, group, requiredEquipment, promo));
+	                Student student = new Student(firstName, lastName, group, requiredEquipment, promo);
+	                student.setExtraTime(extraTime);
+	                students.add(student);
 	            }
 	            // 2. découper, valider, créer le Student, l'ajouter à la liste
 	        }
