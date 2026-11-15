@@ -15,7 +15,7 @@ function Header() {
           </h1>
         </div>
         <div className="flex justify-between gap-3 pt-1.5">
-          <Link to={"/"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/' ? 'font-bold' : ''}`}>Acceuil</button></Link>
+          <Link to={"/"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/' ? 'font-bold' : ''}`}>Accueil</button></Link>
           <Link to={"/Promo"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/Promo' ? 'font-bold' : ''}`}>Mes Promos</button></Link>
           <Link to={"/Room"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/Room' ? 'font-bold' : ''}`}>Mes Salles</button></Link>
           <Link to={"/History"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/History' ? 'font-bold' : ''}`}>Historique Placements</button></Link>
