@@ -76,10 +76,11 @@ public class PromoController {
 	    if (!promoRepository.existsById(id)) {
 	        throw new PromoNotFoundException(id);
 	    }
+	    String promoName = promoRepository.findNameById(id).orElseThrow(() -> new PromoNotFoundException(id));
 	    long studentCount = studentRepository.countByPromoId(id);
 	    if (studentCount > 0) {
 	        if (!withStudents) {
-	            throw new ResponseStatusException(HttpStatus.CONFLICT, "La promotion contient " + studentCount + " étudiant(s) : confirmez la suppression pour les supprimer avec elle");
+	            throw new ResponseStatusException(HttpStatus.CONFLICT, "La promotion" + promoName + "contient " + studentCount + " étudiant(s) : confirmez la suppression pour les supprimer avec elle");
 	        }
 	        studentRepository.deleteByPromoId(id);
 	    }
