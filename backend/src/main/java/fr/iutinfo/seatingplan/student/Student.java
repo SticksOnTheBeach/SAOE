@@ -31,6 +31,9 @@ public class Student {
     private String firstName;
     private String lastName;
     
+    // Tiers temps : information sur l'étudiant, pas un besoin de place (la place n'a rien à fournir).
+    private boolean extraTime = false;
+    
     @ManyToOne
     @JoinColumn(name = "promo_id")
     private Promo promo;
@@ -52,6 +55,7 @@ public class Student {
     @Fetch(FetchMode.SUBSELECT)
     private List<SeatEquipment> requiredEquipment = new ArrayList<>();
     
+    
     protected Student() {}
     
     public Student(String firstName, String lastName, Group groupName, List<SeatEquipment> requiredEquipment, Promo promo) {
@@ -63,7 +67,9 @@ public class Student {
         this.requiredEquipment = new ArrayList<>(asked);
         this.promo = promo;
     }
-
+    
+    public boolean isExtraTime() { return this.extraTime; }
+    public void setExtraTime(boolean extraTime) { this.extraTime = extraTime; }
     public String getId() { return this.id; }
     public String getFirstName() { return this.firstName; }
     public String getLastName() { return this.lastName; }
@@ -115,4 +121,6 @@ public class Student {
         }
         return requiredEquipment;
     }
+    
+    
 }
