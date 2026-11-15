@@ -1,11 +1,16 @@
 package fr.iutinfo.seatingplan.student;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,14 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import fr.iutinfo.seatingplan.promo.Promo;
-import fr.iutinfo.seatingplan.promo.PromoNotFoundException;
 import fr.iutinfo.seatingplan.promo.PromoRepository;
-import fr.iutinfo.seatingplan.room.SeatEquipment;
 import fr.iutinfo.seatingplan.student.Exception.StudentNotFoundException;
+import jakarta.transaction.Transactional;
 
 @RestController
 @RequestMapping("/api/students")
 public class StudentController {
+	private static final int PROMO_NAME_MAX_LENGTH = 50;
 	
 	private StudentRepository studentRepository;
 	private PromoRepository promoRepository;
@@ -58,7 +63,7 @@ public class StudentController {
 	    	 student.setFirstName(newStudent.getFirstName());
 	    	 student.setLastName(newStudent.getLastName());
 	    	 student.setGroupName(newStudent.getGroupName());
-	    	 student.setRequiredEquipment(newStudent.getRequiredEquipment());
+	    	 student.setParticularities(newStudent.getParticularities());
 	    	 student.setExtraTime(newStudent.isExtraTime());
 	        return studentRepository.save(student);
 	      })
@@ -86,65 +91,96 @@ public class StudentController {
 	  }
 	
 	
-	// import csv des étudiants
-	
-	@PostMapping("/import")
-	public List<Student> importCsv(@RequestParam("file") MultipartFile file, @RequestParam Long promoId) throws IOException {
+		// import csv des étudiants
+		// Format du client : Prénom;Nom;Groupe;Promotion;Particularité 1;Particularité 2 (autant de particularités que de colonnes)
+		// La promotion est dans le fichier : on la retrouve par son nom, ou on la crée.
+		@PostMapping("/import")
+		@Transactional
+		public List<Student> importCsv(@RequestParam("file") MultipartFile file) throws IOException {
 
+			String content = decode(file.getBytes());
+			String[] lines = content.split("\\R", -1);
 
-	    Promo promo = promoRepository.findById(promoId).orElseThrow( () -> new PromoNotFoundException(promoId)) ;
+			// 1. tout lire et valider avant d'écrire quoi que ce soit en base : une erreur ne laisse rien derrière elle
+			List<CsvRow> rows = new ArrayList<>();
+			for (int i = 1; i < lines.length; i++) {   // lines[0] = l'en-tête, on la saute
+				String line = lines[i];
+				if (line.isBlank()) {
+					continue;                          // lignes vides ignorées
+				}
+				int numeroLigne = i + 1;
 
+				// split avec -1 sinon java jette les colonnes vides de la fin ("a;b;c;d;;" perdrait les dernières)
+				String[] columns = line.split(";", -1);
+				if (columns.length < 4) {
+					throw new InvalidCsvException("Ligne " + numeroLigne + " : au moins 4 colonnes attendues (Prénom;Nom;Groupe;Promotion), "
+							+ columns.length + " trouvées");
+				}
 
-	    List<Student> students = new ArrayList<>();
+				String firstName = columns[0].trim();
+				String lastName = columns[1].trim();
+				String group = columns[2].trim().toUpperCase(Locale.ROOT);
+				String promoName = columns[3].trim();
 
-	    try (BufferedReader reader = new BufferedReader(
-	        new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+				if (firstName.isEmpty() || lastName.isEmpty()) {
+					throw new InvalidCsvException("Ligne " + numeroLigne + " : le prénom et le nom sont obligatoires");
+				}
+				if (group.isEmpty()) {
+					throw new InvalidCsvException("Ligne " + numeroLigne + " : le groupe est obligatoire");
+				}
+				if (promoName.isEmpty() || promoName.length() > PROMO_NAME_MAX_LENGTH) {
+					throw new InvalidCsvException("Ligne " + numeroLigne + " : la promotion est obligatoire (" + PROMO_NAME_MAX_LENGTH + " caractères maximum)");
+				}
 
-	        String line = reader.readLine();   // l'en-tête, on la saute
-	        int numeroLigne = 1;
+				// les colonnes suivantes sont des particularités ; une cellule vide est ignorée
+				List<StudentType> particularities = new ArrayList<>();
+				for (int j = 4; j < columns.length; j++) {
+					String cell = columns[j].trim();
+					if (cell.isEmpty()) {
+						continue;
+					}
+					try {
+						particularities.add(StudentType.fromLabel(cell));
+					} catch (IllegalArgumentException e) {
+						throw new InvalidCsvException("Ligne " + numeroLigne + " : particularité inconnue '" + cell + "'");
+					}
+				}
 
-	        while ((line = reader.readLine()) != null) {
-	            numeroLigne++;
-	            // en gros on ignore les lignes vides
-	            if (!line.isBlank()) {
-	            	// split avec -1 sinon java jette les colonnes vides de la fin, donc "a;b;c;d;" perdrait la 5eme
-	            	String[] columns = line.split(";", -1);
-	            	// 4 colonnes = l'ancien format "nom;prenom;groupe;prise", 5 = + la colonne pmr, 6 = + la colonne tiers temps
-	            	if (columns.length < 4 || columns.length > 6) {
-	                    throw new InvalidCsvException("Ligne " + numeroLigne + " : 4 à 6 colonnes attendues, " + columns.length + " trouvées");
-	                }
-	            	
-	            	String lastName = columns[0].trim();
-	                String firstName = columns[1].trim();
-	                String groupe = columns[2].trim().toUpperCase();
-	                
-	                // on construit la liste des besoins de l'étudiant : une colonne à "oui" = un équipement en plus
-	                List<SeatEquipment> requiredEquipment = new ArrayList<>();
-	                if (columns[3].trim().equalsIgnoreCase("oui")) {
-	                	requiredEquipment.add(SeatEquipment.POWER_OUTLET);
-	                }
-	                if (columns.length >= 5 && columns[4].trim().equalsIgnoreCase("oui")) {
-	                	requiredEquipment.add(SeatEquipment.PRM);
-	                }
-	                // le tiers temps n'est pas un équipement de place : c'est un booléen sur l'étudiant
-	                boolean extraTime = columns.length == 6 && columns[5].trim().equalsIgnoreCase("oui");
+				rows.add(new CsvRow(firstName, lastName, group, promoName, particularities));
+			}
 
-	                Group group;
-	                try {
-	                    group = Group.valueOf(groupe);
-	                } catch (IllegalArgumentException e) {
-	                    throw new InvalidCsvException("Ligne " + numeroLigne + " : groupe inconnu '" + groupe + "'");
-	                }
+			if (rows.isEmpty()) {
+				throw new InvalidCsvException("Le fichier ne contient aucun étudiant");
+			}
 
-	                Student student = new Student(firstName, lastName, group, requiredEquipment, promo);
-	                student.setExtraTime(extraTime);
-	                students.add(student);
-	            }
-	            // 2. découper, valider, créer le Student, l'ajouter à la liste
-	        }
-	    }
+			// 2. tout est valide : on retrouve (ou on crée) chaque promotion une seule fois, puis on crée les étudiants
+			Map<String, Promo> promos = new HashMap<>();
+			List<Student> students = new ArrayList<>();
+			for (CsvRow row : rows) {
+				Promo promo = promos.computeIfAbsent(row.promoName().toLowerCase(Locale.ROOT),
+						key -> promoRepository.findByNameIgnoreCase(row.promoName())
+								.orElseGet(() -> promoRepository.save(new Promo(row.promoName()))));
+				students.add(new Student(row.firstName(), row.lastName(), row.group(), row.particularities(), promo));
+			}
 
-	    // 3. enregistrer
-	    return studentRepository.saveAll(students);
-	}
+			// 3. enregistrer
+			return studentRepository.saveAll(students);
+		}
+		
+		
+		// Excel sous Windows enregistre souvent en Windows-1252 : on essaie l'UTF-8 strict, sinon on retombe dessus.
+		private static String decode(byte[] bytes) {
+			String text;
+			try {
+				text = StandardCharsets.UTF_8.newDecoder()
+						.onMalformedInput(CodingErrorAction.REPORT)
+						.onUnmappableCharacter(CodingErrorAction.REPORT)
+						.decode(ByteBuffer.wrap(bytes))
+						.toString();
+			} catch (CharacterCodingException e) {
+				text = new String(bytes, Charset.forName("windows-1252"));
+			}
+			// le BOM que mettent certains éditeurs en début de fichier
+			return text.startsWith("﻿") ? text.substring(1) : text;
+		}
 }
