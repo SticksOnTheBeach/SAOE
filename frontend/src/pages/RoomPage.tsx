@@ -13,12 +13,15 @@ function RoomPage() {
   const navigate = useNavigate()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const dialogConfirm = useRef<HTMLDialogElement>(null)
+  const dialogBuildClassPlan = useRef<HTMLDialogElement>(null)
+
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [planX, setPlanX] = useState('')
   const [planY, setPlanY] = useState("")
   const [planName, setPlanName] = useState('')
+  const [roomName, setRoomName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const totalPlaces = Number(planX) * Number(planY)
@@ -158,17 +161,17 @@ function RoomPage() {
             <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
           </div>
           {rooms.map((room) => (
-              <div onClick={() => console.log("Salle ", room.name, " selectionnée")} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] rounded-4xl bg-gray-200 hover:bg-gray-300">
-                <div>
-                  <p className="text-4xl text-center text-[#4D4D4D] select-none">{room.name}</p>
-                  <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
-                  <div className="flex justify-center mt-6 invisible group-hover:visible gap-2">
-                    <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
-                    <Link to="/ClassDisposition" state={room}><img src="/file-earmark-text.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/></Link>
-                    <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
-                  </div>
+            <div onClick={() => {console.log("Salle ", room.name, " selectionnée"), setRoomName(room.name)}} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] rounded-4xl bg-gray-200 hover:bg-gray-300">
+              <div>
+                <p className="text-4xl text-center text-[#4D4D4D] select-none">{room.name}</p>
+                <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
+                <div className="flex justify-center mt-6 invisible group-hover:visible gap-2">
+                  <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
+                  <img onClick={(e) => dialogBuildClassPlan.current?.showModal()} src="/file-earmark-text.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
+                  <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
                 </div>
               </div>
+            </div>
           ))}
         </div>
 
@@ -247,6 +250,22 @@ function RoomPage() {
             </div>
           </dialog>
         </form>
+
+        <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
+          <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+            <div className='flex justify-between'>
+              <div>
+                <h1 className='text-2xl'>Création d'un plan de classe en {roomName}</h1>
+
+                <div className='pt-5 flex gap-5'>
+                  <button type="button" onClick={deleteRoom} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
+                  <button type="button" onClick={() => dialogConfirm.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
+                </div>
+              </div>
+              <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
+            </div>
+          </div>
+        </dialog>
       </div>
   )
 }
