@@ -439,8 +439,9 @@ const PromoPage = () => {
                       title={selectedPromo ? '' : "Enregistre d'abord la promotion"}
                       className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Importer un CSV</button>
               <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={importCsv} className="hidden" />
-              <button type="button" onClick={() => dialogConfirmEmpty.current?.showModal()} disabled={loading || !selectedPromo}
-                      title={selectedPromo ? '' : "Enregistre d'abord la promotion"}
+              <button type="button" onClick={() => dialogConfirmEmpty.current?.showModal()}
+                      disabled={loading || !selectedPromo || (studentCounts[selectedPromo.id] ?? 0) === 0}
+                      title={!selectedPromo ? "Enregistre d'abord la promotion" : (studentCounts[selectedPromo.id] ?? 0) === 0 ? 'La promotion est déjà vide' : ''}
                       className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Vider la promotion</button>
               <button type="button" onClick={selectedPromo ? saveStudents : savePromo}
                       disabled={loading || (!!selectedPromo && dirtyStudents.length === 0)}
