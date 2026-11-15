@@ -95,6 +95,9 @@ public class PromoController {
 		if (!promoRepository.existsById(id)) {
 			throw new PromoNotFoundException(id);
 		}
+	    if (studentRepository.countByPromoId(id) == 0) {
+	        throw new ResponseStatusException(HttpStatus.CONFLICT,"La promotion est déjà vide");
+	    }
 		studentRepository.deleteByPromoId(id);
 	}
 	
