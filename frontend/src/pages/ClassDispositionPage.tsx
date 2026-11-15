@@ -211,7 +211,7 @@ function ClassDispositionPage() {
     <div className='flex flex-col h-[calc(100vh-130px)] p-5 overflow-hidden'>
       <div className='grid grid-cols-3 items-start'>
         <div>
-          <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1><img onClick={() => dialogRefHelp.current?.showModal()} src="/question-circle.svg" alt="" className='w-5 h-auto'/></div>
+          <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1><img onClick={() => dialogRefHelp.current?.showModal()} src="/question-circle.svg" alt="" className='w-5 h-auto cursor-pointer'/></div>
           <h2>Salle {data.name}</h2>
         </div>
         <div className='justify-self-center flex flex-col items-center'>
@@ -264,7 +264,7 @@ function ClassDispositionPage() {
           </div>
         </div>
       </div>
-      <div className='bg-gray-200 flex justify-center p-3 mx-[45%] mt-10 rounded-md'>
+      <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mt-10 rounded-md'>
         <h2>Bureau</h2>
       </div>
       <div className='flex-1 min-h-0 w-full overflow-auto flex'>

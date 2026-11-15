@@ -32,9 +32,31 @@ function PromoPage() {
   const [editingId, setEditingId] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [openingForm, setOpeningForm] = useState(false)
+  const [addingGroup, setAddingGroup] = useState(false)
+  const [newGroupName, setNewGroupName] = useState('')
+
+  function cancelAddingGroup() {
+    // Effacer le texte et masquer le champ ainsi que ses deux boutons.
+    setNewGroupName('')
+    setAddingGroup(false)
+  }
+
+  function validateNewGroup() {
+    // Un nom composé uniquement d'espaces ne crée pas de groupe.
+    const name = newGroupName.trim()
+    if (!name) return
+
+    // La liste produit déjà les boutons : sa mise à jour affiche le nouveau groupe.
+    // Si le nom existe déjà, conserver la liste pour éviter un doublon.
+    setGroupsOfPromo((groups) => groups.includes(name) ? groups : [...groups, name])
+    // Fermer la saisie après validation et la vider pour le prochain ajout.
+    cancelAddingGroup()
+  }
 
   function openPromoDialog(promo: Promo | null) {
     if (dialogChargement.current?.open || dialogRef.current?.open) return
+    // Réinitialiser une éventuelle saisie inachevée en changeant de promotion.
+    cancelAddingGroup()
     dialogChargement.current?.showModal()
 
     // Laisser le navigateur peindre le chargement avant de construire les lignes.
@@ -136,6 +158,8 @@ function PromoPage() {
     }
   }
 
+
+
   return (
   <div>
     {/* Page */}
@@ -188,7 +212,24 @@ function PromoPage() {
               {groupsOfPromo.map((thisGroup) => (
                 <div className='flex gap-5 p-2' key={thisGroup}><button className='border-1 border-gray-300 hover:bg-[#7A1B1B] rounded-md w-full'>{thisGroup}</button></div>
               ))}
-              <div className='p-2'><button className='flex justify-between hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-5 font-bold'><p>+</p><p>Ajouter un groupe</p><p>+</p></button></div>
+              {/* Le champ et les deux boutons apparaissent uniquement pendant l'ajout. */}
+              {addingGroup && (
+                <div className="flex justify-between gap-2 p-2">
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Nom du groupe"
+                    aria-label="Nom du nouveau groupe"
+                    value={newGroupName}
+                    // Garder le texte saisi dans l'état pour le récupérer à la validation.
+                    onChange={(event) => setNewGroupName(event.target.value)}
+                    className="hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[30px]"
+                  />
+                  <button type="button" onClick={validateNewGroup} aria-label="Valider le nouveau groupe" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-2 py-1 w-10 h-[30px]'><img src="/valid.png" alt="" className='invert-[90%]'/></button>
+                  <button type="button" onClick={cancelAddingGroup} aria-label="Annuler l’ajout du groupe" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-2 py-1 w-10 h-[30px]'><img src="/cross.png" alt="" className='invert-[90%]'/></button>
+                </div>
+              )}
+              <div className='p-2'><button onClick={() => setAddingGroup(true)} className='flex justify-between hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-5 font-bold'><p>+</p><p>Ajouter un groupe</p><p>+</p></button></div>
             </div>
           </div>
           <div className='flex-4 border-1 border-gray-300 p-2 rounded-md overflow-y-auto'>
@@ -216,13 +257,13 @@ function PromoPage() {
                       .map((student) => (
                         <tr key={student.id}>
                           <td className='px-2'>
-                            <input type="text" defaultValue={student.firstName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' />
+                            <input type="text" defaultValue={student.firstName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
                           </td>
                           <td className='px-2'>
-                            <input type="text" defaultValue={student.lastName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' />
+                            <input type="text" defaultValue={student.lastName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
                           </td>
                           <td className='px-2'>
-                            <select defaultValue={student.groupName} aria-label={`Groupe de ${student.firstName} ${student.lastName}`} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-3'>
+                            <select defaultValue={student.groupName} aria-label={`Groupe de ${student.firstName} ${student.lastName}`} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-3 h-[25px]'>
                               {groupsOfPromo.map((thisGroup) => (
                                 <option key={thisGroup} value={thisGroup}>{thisGroup}</option>
                               ))}
