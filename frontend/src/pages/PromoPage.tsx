@@ -7,15 +7,25 @@ interface Promo {
   name: string
 }
 
-// What the client writes in the CSV ("Particularité 1", "Particularité 2"...); the backend turns them into seat requirements
-type StudentType = 'PRM' | 'COMPUTER' | 'EXTRA_TIME'
+// A group and the promotion it belongs to (GET /api/groups): G1A..G3B = BUT1, G4A..G6B = BUT2, G7A..G8B = BUT3
+interface GroupInfo {
+  code: string
+  promo: string
+}
+
+// A particularity of a student (mobilité réduite, ordinateur, tiers temps...).
+// The list comes from the backend (GET /api/particularities): adding one never requires a change here.
+interface Particularity {
+  id: string
+  label: string
+}
 
 interface Student {
   id: string
   firstName: string
   lastName: string
   groupName: string
-  particularities: StudentType[]
+  particularities: Particularity[]
   promo: Promo | null
 }
 
@@ -25,15 +35,17 @@ interface Draft {
   firstName: string
   lastName: string
   groupName: string
-  particularities: StudentType[]
+  particularityIds: string[]
 }
 
-const sameParticularities = (a: StudentType[], b: StudentType[]) => [...a].sort().join() === [...b].sort().join()
+const sameIds = (a: string[], b: string[]) => [...a].sort().join() === [...b].sort().join()
 
 const PromoPage = () => {
   const navigate = useNavigate()
   const [promos, setPromos] = useState<Promo[]>([])
   const [students, setStudents] = useState<Student[]>([])
+  const [particularities, setParticularities] = useState<Particularity[]>([])
+  const [allGroups, setAllGroups] = useState<GroupInfo[]>([])
   const [selectedPromo, setSelectedPromo] = useState<Promo | null>(null)
   const [groupsOfPromo, setGroupsOfPromo] = useState<string[]>([])
   const [studentCounts, setStudentCounts] = useState<Record<number, number>>({})
@@ -63,7 +75,7 @@ const PromoPage = () => {
       firstName: student.firstName,
       lastName: student.lastName,
       groupName: student.groupName,
-      particularities: student.particularities ?? [],
+      particularityIds: (student.particularities ?? []).map((p) => p.id),
     }
   }
 
@@ -81,15 +93,12 @@ const PromoPage = () => {
         d.firstName !== student.firstName ||
         d.lastName !== student.lastName ||
         d.groupName !== student.groupName ||
-        !sameParticularities(d.particularities, student.particularities ?? [])
+        !sameIds(d.particularityIds, (student.particularities ?? []).map((p) => p.id))
     )
   }
 
   const dirtyStudents = students.filter(isDirty)
 
-  // Plugs the "Aménagements" dropdown (a web component) on the draft of one student.
-  // On each change we read the whole selection of the dropdown, so the draft always matches what is displayed.
-  // The previous listener is removed first: React calls this ref again at every render.
   function bindParticularities(student: Student) {
     return (el: Element | null) => {
       if (!el) return
@@ -99,8 +108,7 @@ const PromoPage = () => {
         if (!(ev as CustomEvent).detail) return   // native change events bubbling from inside the component
         const selected = box.selectedValues
         if (!Array.isArray(selected)) return
-        const particularities = selected.filter((v): v is StudentType => v === 'PRM' || v === 'COMPUTER' || v === 'EXTRA_TIME')
-        updateDraft(student, (d) => ({ ...d, particularities }))
+        updateDraft(student, (d) => ({ ...d, particularityIds: selected.map(String) }))
       }
       box.addEventListener('change', box.__onParticularities)
     }
@@ -134,7 +142,6 @@ const PromoPage = () => {
     return () => cancelAnimationFrame(frame)
   }, [openingForm])
 
-  // list : the students to read the groups from (after an import, the `students` state is not up to date yet)
   function showGroups(promo: Promo, list: Student[] = students) {
     const groups: string[] = []
     for (const student of list) {
@@ -175,6 +182,28 @@ const PromoPage = () => {
     }
   }
 
+  async function fetchParticularities() {
+    try {
+      const res = await fetch('/api/particularities')
+      if (res.ok) {
+        setParticularities(await res.json())
+      }
+    } catch (err) {
+      console.error('Erreur lors du chargement des particularités : ', err)
+    }
+  }
+
+  async function fetchGroups() {
+    try {
+      const res = await fetch('/api/groups')
+      if (res.ok) {
+        setAllGroups(await res.json())
+      }
+    } catch (err) {
+      console.error('Erreur lors du chargement des groupes : ', err)
+    }
+  }
+
   async function fetchStudentCounts(): Promise<Student[] | null> {
     try {
       const res = await fetch('/api/students')
@@ -199,6 +228,8 @@ const PromoPage = () => {
   useEffect(() => {
     fetchPromos()
     fetchStudentCounts()
+    fetchParticularities()
+    fetchGroups()
   }, [])
 
   async function deletePromo() {
@@ -335,7 +366,7 @@ const PromoPage = () => {
             firstName: d.firstName.trim(),
             lastName: d.lastName.trim(),
             groupName: d.groupName,
-            particularities: d.particularities,
+            particularityIds: d.particularityIds,
           }),
         })
         if (res.ok) {
@@ -397,6 +428,11 @@ const PromoPage = () => {
     }
   }
 
+  // the groups a student of the selected promotion can be moved to (all the groups of the promotion, even empty ones)
+  const groupChoices = selectedPromo
+      ? allGroups.filter((g) => g.promo.toLowerCase() === selectedPromo.name.toLowerCase()).map((g) => g.code)
+      : []
+
   // number of students of the promo the user is about to delete (shown in the confirmation dialog)
   const deletingCount = deletingId ? (studentCounts[deletingId] ?? 0) : 0
 
@@ -406,8 +442,7 @@ const PromoPage = () => {
         <h1 className='text-4xl text-center pt-5 pb-10 text-[#4D4D4D]'>Gestion des promotions</h1>
         <div className='flex flex-col items-center pb-8'>
           <button type="button" onClick={() => fileRef.current?.click()} disabled={importing}
-                  className='cursor-pointer rounded-md bg-gray-200 hover:bg-gray-300 text-[#4D4D4D] px-10 py-2 disabled:opacity-50'>
-            {importing ? 'Import en cours…' : 'Importer un CSV'}
+                  className='cursor-pointer bg-gray-200 hover:bg-gray-300 text-black px-10 py-2 '>{importing ? 'Import en cours…' : 'Importer un CSV'}
           </button>
           <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={importCsv} className="hidden" />
           <p className='mt-2 text-sm text-[#4D4D4D]'>Format : Prénom;Nom;Groupe;Promotion;Particularité 1;Particularité 2</p>
@@ -510,16 +545,17 @@ const PromoPage = () => {
                                     <select value={draftOf(student).groupName}
                                             onChange={(e) => updateDraft(student, (d) => ({ ...d, groupName: e.target.value }))}
                                             aria-label={`Groupe de ${student.firstName} ${student.lastName}`} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-3'>
-                                      {groupsOfPromo.map((thisGroup) => (
+                                      {(groupChoices.length > 0 ? groupChoices : groupsOfPromo).map((thisGroup) => (
                                           <option key={thisGroup} value={thisGroup}>{thisGroup}</option>
                                       ))}
                                     </select>
                                   </td>
                                   <td className='px-2'>
-                                    <smart-drop-down-list ref={bindParticularities(student)} selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
-                                      <smart-list-item value="EXTRA_TIME" selected={(student.particularities ?? []).includes('EXTRA_TIME')}>Tiers temps</smart-list-item>
-                                      <smart-list-item value="COMPUTER" selected={(student.particularities ?? []).includes('COMPUTER')}>Ordinateur</smart-list-item>
-                                      <smart-list-item value="PRM" selected={(student.particularities ?? []).includes('PRM')}>Mobilité réduite</smart-list-item>
+                                    {/* key: the dropdown does not pick up items added after its creation, so it is rebuilt once the list is loaded */}
+                                    <smart-drop-down-list key={`${student.id}:${particularities.length}`} ref={bindParticularities(student)} selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
+                                      {particularities.map((p) => (
+                                          <smart-list-item key={p.id} value={p.id} selected={(student.particularities ?? []).some((sp) => sp.id === p.id)}>{p.label}</smart-list-item>
+                                      ))}
                                     </smart-drop-down-list>
                                   </td>
                                   <td>
