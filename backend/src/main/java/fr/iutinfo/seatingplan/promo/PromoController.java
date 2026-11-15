@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,7 +53,8 @@ public class PromoController {
 		promoRepository.findById(id).orElseThrow(() -> new PromoNotFoundException(id));		
 		return studentRepository.findByPromoId(id);
 	}
-	/* MÉTHODE PERMETTANT DE SUPPRIMER UNE PROMO MAIS PAS DE LA VIDER, SI LA PROMO CONTIENT DES ELÈVES CETTE DERNIÈRE NE PEUT ÊTRE SUPPRIMÉE */
+	
+	/* MÉTHODE PERMETTANT DE SUPPRIMER UNE PROMO MAIS PAS DE LA VIDER, SI LA PROMO CONTIENT DES ELÈVES CETTE DERNIÈRE NE PEUT ÊTRE SUPPRIMÉE
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void deletePromo(@PathVariable Long id) {
@@ -64,7 +66,26 @@ public class PromoController {
 	        throw new ResponseStatusException(HttpStatus.CONFLICT, "Impossible de supprimer cette promo : elle contient " + studentCount + " étudiant(s)");
 	    }
 	    promoRepository.deleteById(id);
+	}*/
+	
+	
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	@Transactional
+	public void deletePromo(@PathVariable Long id, @RequestParam(defaultValue = "false") boolean withStudents) {
+	    if (!promoRepository.existsById(id)) {
+	        throw new PromoNotFoundException(id);
+	    }
+	    long studentCount = studentRepository.countByPromoId(id);
+	    if (studentCount > 0) {
+	        if (!withStudents) {
+	            throw new ResponseStatusException(HttpStatus.CONFLICT, "La promotion contient " + studentCount + " étudiant(s) : confirmez la suppression pour les supprimer avec elle");
+	        }
+	        studentRepository.deleteByPromoId(id);
+	    }
+	    promoRepository.deleteById(id);
 	}
+	
 	// permet de vider une promo de ses étudiants
 	@DeleteMapping("/{id}/students")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
