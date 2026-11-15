@@ -43,6 +43,7 @@ const PromoPage = () => {
   const dialogChargement = useRef<HTMLDialogElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [openingForm, setOpeningForm] = useState(false)
+  const [deletingStudent, setDeletingStudent] = useState<Student | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [editingId, setEditingId] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
@@ -82,19 +83,21 @@ const PromoPage = () => {
   const dirtyStudents = students.filter(isDirty)
 
   // Plugs the "Aménagements" dropdown (a web component) on the draft of one student.
-  // Only the item that triggered the event is applied, so a change fired at startup does nothing harmful.
+  // On each change we read the whole selection of the dropdown, so the draft always matches what is displayed.
+  // The previous listener is removed first: React calls this ref again at every render.
   function bindEquipment(student: Student) {
     return (el: Element | null) => {
       if (!el) return
-          ;(el as HTMLElement).onchange = (ev: Event) => {
-        const detail = (ev as CustomEvent).detail
-        if (!detail || (detail.value !== 'PRM' && detail.value !== 'POWER_OUTLET')) return
-        const value = detail.value as Equipment
-        updateDraft(student, (d) => {
-          const without = d.requiredEquipment.filter((e) => e !== value)
-          return { ...d, requiredEquipment: detail.selected ? [...without, value] : without }
-        })
+      const box = el as HTMLElement & { selectedValues?: string[]; __onEquipment?: EventListener }
+      if (box.__onEquipment) box.removeEventListener('change', box.__onEquipment)
+      box.__onEquipment = (ev: Event) => {
+        if (!(ev as CustomEvent).detail) return   // native change events bubbling from inside the component
+        const selected = box.selectedValues
+        if (!Array.isArray(selected)) return
+        const equipment = selected.filter((v): v is Equipment => v === 'PRM' || v === 'POWER_OUTLET')
+        updateDraft(student, (d) => ({ ...d, requiredEquipment: equipment }))
       }
+      box.addEventListener('change', box.__onEquipment)
     }
   }
 
@@ -270,6 +273,34 @@ const PromoPage = () => {
       setError('Le serveur ne répond pas')
     } finally {
       dialogConfirmEmpty.current?.close()
+    }
+  }
+
+  async function deleteStudent() {
+    if (!deletingStudent || !selectedPromo) return
+    setError('')
+    setMessage('')
+    try {
+      const res = await fetch(`/api/students/${deletingStudent.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        // the student is gone: forget his unsaved changes, then reload the list and the groups
+        setDrafts((prev) => {
+          const next = { ...prev }
+          delete next[deletingStudent.id]
+          return next
+        })
+        const data = await fetchStudentCounts()
+        if (data) setGroupsOfPromo(showGroups(selectedPromo, data))
+        setMessage(`${deletingStudent.firstName} ${deletingStudent.lastName} supprimé(e)`)
+      } else {
+        setError(await readError(res))
+      }
+    } catch (err) {
+      console.error("Erreur lors de la suppression de l'étudiant : ", err)
+      setError('Le serveur ne répond pas')
+    } finally {
+      setDeletingStudent(null)
+      dialogConfirmStudent.current?.close()
     }
   }
 
@@ -477,7 +508,7 @@ const PromoPage = () => {
                                     </smart-drop-down-list>
                                   </td>
                                   <td>
-                                    <div className='flex items-center justify-center px-2 py-1 border-1 border-gray-300 rounded-md hover:bg-[#7A1B1B]'><img src="/trash.svg" onClick={() => dialogConfirmStudent.current?.showModal()} alt="Supprimer un élève" className='invert-[90%]'/></div>
+                                    <div className='flex items-center justify-center px-2 py-1 border-1 border-gray-300 rounded-md hover:bg-[#7A1B1B]'><img src="/trash.svg" onClick={() => { setDeletingStudent(student); dialogConfirmStudent.current?.showModal() }} alt="Supprimer un élève" className='invert-[90%]'/></div>
                                   </td>
                                 </tr>
                             ))}
@@ -546,14 +577,15 @@ const PromoPage = () => {
         </dialog>
 
         {/* Dialog confirm del */}
-        <dialog ref={dialogConfirmStudent} onClose={resetDialog} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
+        {/* (no onClose={resetDialog}: it would erase the result message) */}
+        <dialog ref={dialogConfirmStudent} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
           <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
             <div className='flex justify-between'>
               <div>
-                <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer cet étudiant ?</h1>
+                <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer {deletingStudent ? `${deletingStudent.firstName} ${deletingStudent.lastName}` : 'cet étudiant'} ?</h1>
                 <h2>Cette action est définitive.</h2>
                 <div className='pt-5 flex gap-5'>
-                  <button type="button" className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
+                  <button type="button" onClick={deleteStudent} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
                   <button type="button" onClick={() => dialogConfirmStudent.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
                 </div>
               </div>
