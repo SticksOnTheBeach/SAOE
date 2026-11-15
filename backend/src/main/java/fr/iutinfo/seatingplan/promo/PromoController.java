@@ -92,13 +92,11 @@ public class PromoController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@Transactional
 	public void emptyPromo(@PathVariable Long id) {
-		if (!promoRepository.existsById(id)) {
-			throw new PromoNotFoundException(id);
-		}
+	    Promo promo = promoRepository.findById(id).orElseThrow(() -> new PromoNotFoundException(id));
 	    if (studentRepository.countByPromoId(id) == 0) {
-	        throw new ResponseStatusException(HttpStatus.CONFLICT,"La promotion est déjà vide");
+	        throw new ResponseStatusException(HttpStatus.CONFLICT,"La promotion " + promo.getName() + " est déjà vide");
 	    }
-		studentRepository.deleteByPromoId(id);
+	    studentRepository.deleteByPromoId(id);
 	}
 	
 
