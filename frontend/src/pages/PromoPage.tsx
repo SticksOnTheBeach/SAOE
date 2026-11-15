@@ -7,28 +7,28 @@ interface Promo {
   name: string
 }
 
+// What the client writes in the CSV ("Particularité 1", "Particularité 2"...); the backend turns them into seat requirements
+type StudentType = 'PRM' | 'COMPUTER' | 'EXTRA_TIME'
+
 interface Student {
   id: string
   firstName: string
   lastName: string
   groupName: string
-  requiredEquipment: ('PRM' | 'POWER_OUTLET')[]
-  extraTime: boolean
+  particularities: StudentType[]
   promo: Promo | null
 }
 
-type Equipment = 'PRM' | 'POWER_OUTLET'
 
 // What the user typed for one student, not saved yet
 interface Draft {
   firstName: string
   lastName: string
   groupName: string
-  requiredEquipment: Equipment[]
-  extraTime: boolean
+  particularities: StudentType[]
 }
 
-const sameEquipment = (a: Equipment[], b: Equipment[]) => [...a].sort().join() === [...b].sort().join()
+const sameParticularities = (a: StudentType[], b: StudentType[]) => [...a].sort().join() === [...b].sort().join()
 
 const PromoPage = () => {
   const navigate = useNavigate()
@@ -50,6 +50,9 @@ const PromoPage = () => {
   const [editingId, setEditingId] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [deleteError, setDeleteError] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importMessage, setImportMessage] = useState('')
+  const [importError, setImportError] = useState('')
   const dialogConfirmEmpty = useRef<HTMLDialogElement>(null)
   const [newPromoName, setNewPromoName] = useState('')
   // unsaved changes, by student id (only the students the user touched)
@@ -60,8 +63,7 @@ const PromoPage = () => {
       firstName: student.firstName,
       lastName: student.lastName,
       groupName: student.groupName,
-      requiredEquipment: student.requiredEquipment ?? [],
-      extraTime: student.extraTime ?? false,
+      particularities: student.particularities ?? [],
     }
   }
 
@@ -79,8 +81,7 @@ const PromoPage = () => {
         d.firstName !== student.firstName ||
         d.lastName !== student.lastName ||
         d.groupName !== student.groupName ||
-        d.extraTime !== (student.extraTime ?? false) ||
-        !sameEquipment(d.requiredEquipment, student.requiredEquipment ?? [])
+        !sameParticularities(d.particularities, student.particularities ?? [])
     )
   }
 
@@ -89,21 +90,19 @@ const PromoPage = () => {
   // Plugs the "Aménagements" dropdown (a web component) on the draft of one student.
   // On each change we read the whole selection of the dropdown, so the draft always matches what is displayed.
   // The previous listener is removed first: React calls this ref again at every render.
-  function bindEquipment(student: Student) {
+  function bindParticularities(student: Student) {
     return (el: Element | null) => {
       if (!el) return
-      const box = el as HTMLElement & { selectedValues?: string[]; __onEquipment?: EventListener }
-      if (box.__onEquipment) box.removeEventListener('change', box.__onEquipment)
-      box.__onEquipment = (ev: Event) => {
+      const box = el as HTMLElement & { selectedValues?: string[]; __onParticularities?: EventListener }
+      if (box.__onParticularities) box.removeEventListener('change', box.__onParticularities)
+      box.__onParticularities = (ev: Event) => {
         if (!(ev as CustomEvent).detail) return   // native change events bubbling from inside the component
         const selected = box.selectedValues
         if (!Array.isArray(selected)) return
-        const equipment = selected.filter((v): v is Equipment => v === 'PRM' || v === 'POWER_OUTLET')
-        // tiers temps: not a seat equipment, saved as its own field
-        const extraTime = selected.includes('EXTRA_TIME')
-        updateDraft(student, (d) => ({ ...d, requiredEquipment: equipment, extraTime }))
+        const particularities = selected.filter((v): v is StudentType => v === 'PRM' || v === 'COMPUTER' || v === 'EXTRA_TIME')
+        updateDraft(student, (d) => ({ ...d, particularities }))
       }
-      box.addEventListener('change', box.__onEquipment)
+      box.addEventListener('change', box.__onParticularities)
     }
   }
 
@@ -227,37 +226,40 @@ const PromoPage = () => {
     }
   }
 
+  // The CSV carries the promotion of each student: the backend finds or creates the promotions by name
   async function importCsv(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ''   // lets the user pick the same file again
-    if (!file || !selectedPromo) return
+    if (!file) return
 
-    setError('')
-    setMessage('')
-    setLoading(true)
+    setImportError('')
+    setImportMessage('')
+    setImporting(true)
     try {
       // no Content-Type header here: the browser sets it (with the multipart boundary)
       const form = new FormData()
       form.append('file', file)
-      const res = await fetch(`/api/students/import?promoId=${selectedPromo.id}`, {
+      const res = await fetch('/api/students/import', {
         method: 'POST',
         body: form,
       })
       if (res.ok) {
-        const imported: unknown[] = await res.json()
-        const data = await fetchStudentCounts()
-        if (data) setGroupsOfPromo(showGroups(selectedPromo, data))
-        setMessage(`${imported.length} étudiant(s) importé(s)`)
+        const imported: Student[] = await res.json()
+        await fetchPromos()
+        await fetchStudentCounts()
+        const promoCount = new Set(imported.map((s) => s.promo?.id)).size
+        setImportMessage(`${imported.length} étudiant(s) importé(s) dans ${promoCount} promotion(s)`)
       } else {
-        setError(await readError(res))
+        setImportError(await readError(res))
       }
     } catch (err) {
       console.error("Erreur lors de l'import : ", err)
-      setError('Le serveur ne répond pas')
+      setImportError('Le serveur ne répond pas')
     } finally {
-      setLoading(false)
+      setImporting(false)
     }
   }
+
   // fonction qui VIDE une promo de ses étudiants
   async function emptyPromo() {
     if (!selectedPromo) return
@@ -333,8 +335,7 @@ const PromoPage = () => {
             firstName: d.firstName.trim(),
             lastName: d.lastName.trim(),
             groupName: d.groupName,
-            requiredEquipment: d.requiredEquipment,
-            extraTime: d.extraTime,
+            particularities: d.particularities,
           }),
         })
         if (res.ok) {
@@ -403,6 +404,16 @@ const PromoPage = () => {
       <div>
         {/* Page */}
         <h1 className='text-4xl text-center pt-5 pb-10 text-[#4D4D4D]'>Gestion des promotions</h1>
+        <div className='flex flex-col items-center pb-8'>
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={importing}
+                  className='cursor-pointer rounded-md bg-gray-200 hover:bg-gray-300 text-[#4D4D4D] px-10 py-2 disabled:opacity-50'>
+            {importing ? 'Import en cours…' : 'Importer un CSV'}
+          </button>
+          <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={importCsv} className="hidden" />
+          <p className='mt-2 text-sm text-[#4D4D4D]'>Format : Prénom;Nom;Groupe;Promotion;Particularité 1;Particularité 2</p>
+          {importMessage && <p className='mt-2 font-bold text-green-700'>{importMessage}</p>}
+          {importError && <p className='mt-2 font-bold text-red-600'>{importError}</p>}
+        </div>
         {deleteError && <p className='pb-4 text-center font-bold text-red-600'>{deleteError}</p>}
         <div className="grid grid-cols-5 gap-10 px-20 pb-10">
           <div onClick={() => openPromoDialog(null)} className="cursor-pointer flex items-center justify-center aspect-[4/3] rounded-4xl bg-gray-200 hover:bg-gray-300">
@@ -435,10 +446,6 @@ const PromoPage = () => {
               <img onClick={() => dialogRef.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
             </div>
             <div className='flex justify-between'>
-              <button type="button" onClick={() => fileRef.current?.click()} disabled={loading || !selectedPromo}
-                      title={selectedPromo ? '' : "Enregistre d'abord la promotion"}
-                      className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75 disabled:opacity-50'>Importer un CSV</button>
-              <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={importCsv} className="hidden" />
               <button type="button" onClick={() => dialogConfirmEmpty.current?.showModal()}
                       disabled={loading || !selectedPromo || (studentCounts[selectedPromo.id] ?? 0) === 0}
                       title={!selectedPromo ? "Enregistre d'abord la promotion" : (studentCounts[selectedPromo.id] ?? 0) === 0 ? 'La promotion est déjà vide' : ''}
@@ -509,11 +516,10 @@ const PromoPage = () => {
                                     </select>
                                   </td>
                                   <td className='px-2'>
-                                    <smart-drop-down-list ref={bindEquipment(student)} selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
-                                      <smart-list-item value="EXTRA_TIME" selected={student.extraTime ?? false}>Tiers Temps</smart-list-item>
-                                      <smart-list-item value="POWER_OUTLET" selected={(student.requiredEquipment ?? []).includes('POWER_OUTLET')}>Prise Electrique</smart-list-item>
-                                      <smart-list-item value="PRM" selected={(student.requiredEquipment ?? []).includes('PRM')}>PMR</smart-list-item>
-                                      <smart-list-item value="3">Autre</smart-list-item>
+                                    <smart-drop-down-list ref={bindParticularities(student)} selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
+                                      <smart-list-item value="EXTRA_TIME" selected={(student.particularities ?? []).includes('EXTRA_TIME')}>Tiers temps</smart-list-item>
+                                      <smart-list-item value="COMPUTER" selected={(student.particularities ?? []).includes('COMPUTER')}>Ordinateur</smart-list-item>
+                                      <smart-list-item value="PRM" selected={(student.particularities ?? []).includes('PRM')}>Mobilité réduite</smart-list-item>
                                     </smart-drop-down-list>
                                   </td>
                                   <td>
