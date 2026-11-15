@@ -427,7 +427,8 @@ const PromoPage = () => {
         </div>
 
         {/* Dialog modif promo */}
-        <dialog ref={dialogRef} onClose={closeEditDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
+        {/* The "Aménagements" dropdown fires its own bubbling "close" event: only the dialog's own close counts */}
+        <dialog ref={dialogRef} onClose={(e) => { if (e.target === e.currentTarget) closeEditDialog() }} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
           <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
             <div className='flex justify-between mb-5'>
               <h2 className='justify-self-center text-center text-4xl whitespace-nowrap'>{editingId ? 'Modification de la promotion' : 'Outil de création de la promotion'}</h2>
