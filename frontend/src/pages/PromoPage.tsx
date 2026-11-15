@@ -13,6 +13,7 @@ interface Student {
   lastName: string
   groupName: string
   requiredEquipment: ('PRM' | 'POWER_OUTLET')[]
+  extraTime: boolean
   promo: Promo | null
 }
 
@@ -24,6 +25,7 @@ interface Draft {
   lastName: string
   groupName: string
   requiredEquipment: Equipment[]
+  extraTime: boolean
 }
 
 const sameEquipment = (a: Equipment[], b: Equipment[]) => [...a].sort().join() === [...b].sort().join()
@@ -59,6 +61,7 @@ const PromoPage = () => {
       lastName: student.lastName,
       groupName: student.groupName,
       requiredEquipment: student.requiredEquipment ?? [],
+      extraTime: student.extraTime ?? false,
     }
   }
 
@@ -76,6 +79,7 @@ const PromoPage = () => {
         d.firstName !== student.firstName ||
         d.lastName !== student.lastName ||
         d.groupName !== student.groupName ||
+        d.extraTime !== (student.extraTime ?? false) ||
         !sameEquipment(d.requiredEquipment, student.requiredEquipment ?? [])
     )
   }
@@ -328,6 +332,7 @@ const PromoPage = () => {
             lastName: d.lastName.trim(),
             groupName: d.groupName,
             requiredEquipment: d.requiredEquipment,
+            extraTime: d.extraTime,
           }),
         })
         if (res.ok) {
