@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
 
 interface Promo {
   id: number
   name: string
+  groups?: string[]
 }
 
 interface Student {
@@ -11,12 +11,13 @@ interface Student {
   firstName: string
   lastName: string
   groupName: string
+  extraTime?: boolean
+  otherAccommodation?: boolean
   needsPowerOutlet: boolean
   promo: Promo | null
 }
 
 function PromoPage() {
-  const navigate = useNavigate()
   const [promos, setPromos] = useState<Promo[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [selectedPromo, setSelectedPromo] = useState<Promo | null>(null)
@@ -25,43 +26,52 @@ function PromoPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const dialogConfirmGroup = useRef<HTMLDialogElement>(null)
   const dialogConfirmPromo = useRef<HTMLDialogElement>(null)
   const dialogConfirmStudent = useRef<HTMLDialogElement>(null)
   const dialogChargement = useRef<HTMLDialogElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [editingId, setEditingId] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deletingStudentId, setDeletingStudentId] = useState<number | null>(null)
+  const [deletingStudent, setDeletingStudent] = useState(false)
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null)
+  const [deletingGroup, setDeletingGroup] = useState<string | null>(null)
+  const [groupDeleteError, setGroupDeleteError] = useState('')
+  const groupDeleteInProgress = useRef(false)
   const [openingForm, setOpeningForm] = useState(false)
   const [addingGroup, setAddingGroup] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
+  const [studentDrafts, setStudentDrafts] = useState<{ id: string; groupName: string }[]>([])
+  const [promoName, setPromoName] = useState('')
+  const [formVersion, setFormVersion] = useState(0)
+  const savingPromo = useRef(false)
 
   function cancelAddingGroup() {
-    // Effacer le texte et masquer le champ ainsi que ses deux boutons.
     setNewGroupName('')
     setAddingGroup(false)
   }
 
   function validateNewGroup() {
-    // Un nom composé uniquement d'espaces ne crée pas de groupe.
     const name = newGroupName.trim()
     if (!name) return
 
-    // La liste produit déjà les boutons : sa mise à jour affiche le nouveau groupe.
-    // Si le nom existe déjà, conserver la liste pour éviter un doublon.
     setGroupsOfPromo((groups) => groups.includes(name) ? groups : [...groups, name])
-    // Fermer la saisie après validation et la vider pour le prochain ajout.
     cancelAddingGroup()
   }
 
   function openPromoDialog(promo: Promo | null) {
     if (dialogChargement.current?.open || dialogRef.current?.open) return
-    // Réinitialiser une éventuelle saisie inachevée en changeant de promotion.
     cancelAddingGroup()
+    setPromoName(promo?.name ?? '')
+    setError('')
+    setMessage('')
+    setStudentDrafts([])
     dialogChargement.current?.showModal()
 
-    // Laisser le navigateur peindre le chargement avant de construire les lignes.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        setFormVersion((version) => version + 1)
         setSelectedPromo(promo)
         setGroupsOfPromo(promo ? showGroups(promo) : [])
         setEditingId(promo !== null)
@@ -73,8 +83,6 @@ function PromoPage() {
   useEffect(() => {
     if (!openingForm) return
 
-    // React a inséré les lignes dans le DOM : afficher le formulaire,
-    // puis retirer le chargement, sans délai artificiel.
     const frame = requestAnimationFrame(() => {
       dialogRef.current?.showModal()
       dialogChargement.current?.close()
@@ -85,7 +93,7 @@ function PromoPage() {
 
 
   function showGroups(promo: Promo) {
-    const groups: string[] = []
+    const groups: string[] = [...(promo.groups ?? [])]
     for (const student of students) {
       if (student.promo?.id !== promo.id) continue
       if (!groups.includes(student.groupName)) {
@@ -141,6 +149,124 @@ function PromoPage() {
     fetchStudentCounts()
   }, [])
 
+  async function savePromo() {
+    if (savingPromo.current || deletingGroup !== null || deletingStudent) return
+    savingPromo.current = true
+    setLoading(true)
+    setError('')
+    setMessage('')
+    try {
+      if (!promoName.trim()) throw new Error('Renseignez le nom de la promotion.')
+      if (addingGroup && newGroupName.trim()) throw new Error('Validez le nouveau groupe avant de sauvegarder.')
+
+      const rows = Array.from(dialogRef.current!.querySelectorAll<HTMLTableRowElement>('tr[data-student-row]'))
+      const editedStudents = rows.map((row) => {
+        const input = (name: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${name}"]`)!.value.trim()
+        const menu = row.querySelector('smart-drop-down-list') as HTMLElement & { selectedValues?: string[] }
+        const amenities = menu.selectedValues ?? []
+        const firstName = input('firstName')
+        const lastName = input('lastName')
+        if (!firstName || !lastName) throw new Error('Chaque ligne doit avoir un prénom et un nom. Supprimez les lignes vides inutilisées.')
+        return {
+          id: row.dataset.studentId ? Number(row.dataset.studentId) : null,
+          firstName, lastName, groupName: input('groupName'),
+          needsPowerOutlet: amenities.includes('2'),
+          extraTime: amenities.includes('1'),
+          otherAccommodation: amenities.includes('3'),
+        }
+      })
+      const res = await fetch(selectedPromo ? `/api/promos/${selectedPromo.id}` : '/api/promos', {
+        method: selectedPromo ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: promoName.trim(), groups: groupsOfPromo, students: editedStudents }),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(body?.message ?? `Enregistrement impossible (HTTP ${res.status}).`)
+      const saved = body as { promo: Promo; students: Student[] }
+      setSelectedPromo(saved.promo)
+      setEditingId(true)
+      setPromos((current) => [...current.filter((promo) => promo.id !== saved.promo.id), saved.promo].sort((a, b) => a.id - b.id))
+      setStudents((current) => [...current.filter((student) => student.promo?.id !== saved.promo.id), ...saved.students])
+      setStudentCounts((counts) => ({ ...counts, [saved.promo.id]: saved.students.length }))
+      setStudentDrafts([])
+      setMessage('Promotion enregistrée.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l’enregistrement.')
+    } finally {
+      savingPromo.current = false
+      setLoading(false)
+    }
+  }
+
+  async function deleteStudents() {
+    if (deletingStudentId === null || deletingStudent) return
+    const student = students.find((item) => item.id === deletingStudentId)
+    setDeletingStudent(true)
+    setError('')
+
+    try {
+      const res = await fetch(`/api/students/${deletingStudentId}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) throw new Error(`Suppression impossible (HTTP ${res.status}).`)
+
+      setStudents((current) => current.filter((item) => item.id !== deletingStudentId))
+      if (student?.promo) {
+        const promoId = student.promo.id
+        setStudentCounts((counts) => ({
+          ...counts,
+          [promoId]: Math.max(0, (counts[promoId] ?? 0) - 1),
+        }))
+      }
+      dialogConfirmStudent.current?.close()
+      setDeletingStudentId(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de la suppression.')
+    } finally {
+      setDeletingStudent(false)
+    }
+  }
+
+  async function deleteGroup(groupName: string) {
+    if (groupDeleteInProgress.current || deletingStudent) return
+    groupDeleteInProgress.current = true
+    setDeletingGroup(groupName)
+    setGroupDeleteError('')
+
+    const promoId = selectedPromo?.id
+    const groupStudents = students.filter((student) =>
+      promoId !== undefined && student.promo?.id === promoId && student.groupName === groupName
+    )
+    const deletedIds = new Set<number>()
+
+    try {
+      for (const student of groupStudents) {
+        const res = await fetch(`/api/students/${student.id}`, { method: 'DELETE' })
+        if (!res.ok) throw new Error(`Suppression impossible (HTTP ${res.status}).`)
+        deletedIds.add(student.id)
+      }
+
+      setGroupsOfPromo((groups) => groups.filter((group) => group !== groupName))
+      setStudentDrafts((drafts) => drafts.filter((draft) => draft.groupName !== groupName))
+      dialogConfirmGroup.current?.close()
+    } catch (err) {
+      setGroupDeleteError(
+        `${deletedIds.size}/${groupStudents.length} élèves supprimés. ` +
+        (err instanceof Error ? err.message : 'Erreur lors de la suppression.')
+      )
+    } finally {
+      setStudents((current) => current.filter((student) => !deletedIds.has(student.id)))
+      if (promoId !== undefined && deletedIds.size > 0) {
+        setStudentCounts((counts) => ({
+          ...counts,
+          [promoId]: Math.max(0, (counts[promoId] ?? 0) - deletedIds.size),
+        }))
+      }
+      setDeletingGroup(null)
+      groupDeleteInProgress.current = false
+    }
+  }
+
   async function deletePromo() {
     if (!deletingId) return
     try {
@@ -175,7 +301,6 @@ function PromoPage() {
                     <p className="text-l text-center text-[#4D4D4D] select-none">Nombre d'étudiants : {studentCounts[promo.id] ?? 0}</p>
                     <div className="flex justify-center mt-6 invisible group-hover:visible gap-2">
                         <img onClick={(event) => {
-                          // Le clic sur le stylo ne doit pas déclencher celui de la carte.
                           event.stopPropagation()
                           openPromoDialog(promo)
                         }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
@@ -187,15 +312,19 @@ function PromoPage() {
     </div>
     
     {/* Dialog modif promo */}
-    <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
-      <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+    <dialog ref={dialogRef} onCancel={(event) => { if (savingPromo.current) event.preventDefault() }} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
+      <fieldset key={formVersion} disabled={loading} className='flex flex-col min-w-0 w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
         <div className='flex justify-between mb-5'>
-          <h2 className='justify-self-center text-center text-4xl whitespace-nowrap'>{editingId ? 'Modification de la promotion' : 'Outil de création de la promotion'}</h2>
-          <img onClick={() => dialogRef.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
+          <div className='flex justify-left gap-5'>
+            <h2 className='justify-self-center text-center text-4xl whitespace-nowrap'>{editingId ? 'Modification de la promotion' : 'Outil de création de la promotion'}</h2>
+            <input aria-label="Nom de la promotion" value={promoName} onChange={(event) => setPromoName(event.target.value)} className="text-center text-2xl border border-gray-300 rounded-md px-2 w-[20%]" />
+          </div>
+          <img onClick={() => { if (!savingPromo.current) dialogRef.current?.close() }} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
         </div>
+        {error && <p role="alert" className="mb-3 text-red-200">{error}</p>}
+        {message && <p role="status" className="mb-3">{message}</p>}
         <div className='flex justify-between'>
           <div>
-            {/* Les classes file: personnalisent le bouton natif du sélecteur. */}
             <input type="file" id="import-fichier" accept=".csv" aria-label="Importer un CSV" disabled={loading} className='text-sm file:cursor-pointer file:rounded-md file:border file:border-gray-300 file:bg-transparent file:px-10 file:py-1 file:text-white file:mr-3 hover:file:bg-[#7A1B1B] disabled:opacity-50'
               onChange={(event) => {
                 const file = event.target.files?.[0]
@@ -203,16 +332,26 @@ function PromoPage() {
               }}
             />
           </div>
-          <button type="button" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Enregistrer la promotion</button>
+          <button type="button" onClick={savePromo} disabled={loading || deletingGroup !== null || deletingStudent} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>{loading ? 'Enregistrement…' : 'Enregistrer la promotion'}</button>
         </div>
         <div className='flex flex-1 min-h-0 gap-2 mt-2'>
           <div className='flex-1 border-1 border-gray-300 p-2 rounded-md overflow-y-auto'>
             <h2 className='text-center text-2xl font-bold'>Groupes</h2>
-            <div className='flex gap-0 flex-col mt-10'>
+            {groupDeleteError && <p role="alert" className="mt-3 text-red-200">{groupDeleteError}</p>}
+            {deletingGroup !== null && <p role="status">Suppression du groupe {deletingGroup}…</p>}
+            <div className='flex justify-between gap-0 flex-col mt-10'>
               {groupsOfPromo.map((thisGroup) => (
-                <div className='flex gap-5 p-2' key={thisGroup}><button className='border-1 border-gray-300 hover:bg-[#7A1B1B] rounded-md w-full'>{thisGroup}</button></div>
+                <div className='flex justify-between gap-2 p-2' key={thisGroup}>
+                  <button className='border-1 border-gray-300 hover:bg-[#7A1B1B] rounded-md w-full h-[25px]'>{thisGroup}</button>
+                  <button type="button" onClick={() => {
+                    setGroupToDelete(thisGroup)
+                    setGroupDeleteError('')
+                    dialogConfirmGroup.current?.showModal()
+                  }} disabled={deletingGroup !== null || deletingStudent} aria-label={`Supprimer le groupe ${thisGroup}`} className='flex items-center justify-center px-2 py-1 h-[25px] border-1 border-gray-300 rounded-md hover:bg-[#7A1B1B] disabled:opacity-50'>
+                    <img className='w-4 h-4 invert-[90%]' src="/trash.svg" alt="" />
+                  </button>
+                </div>
               ))}
-              {/* Le champ et les deux boutons apparaissent uniquement pendant l'ajout. */}
               {addingGroup && (
                 <div className="flex justify-between gap-2 p-2">
                   <input
@@ -221,7 +360,6 @@ function PromoPage() {
                     placeholder="Nom du groupe"
                     aria-label="Nom du nouveau groupe"
                     value={newGroupName}
-                    // Garder le texte saisi dans l'état pour le récupérer à la validation.
                     onChange={(event) => setNewGroupName(event.target.value)}
                     className="hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[30px]"
                   />
@@ -255,35 +393,65 @@ function PromoPage() {
                         student.groupName === thisGroup
                       )
                       .map((student) => (
-                        <tr key={student.id}>
+                        <tr key={student.id} data-student-row data-student-id={student.id}>
                           <td className='px-2'>
-                            <input type="text" defaultValue={student.firstName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
+                            <input type="text" name="firstName" defaultValue={student.firstName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
                           </td>
                           <td className='px-2'>
-                            <input type="text" defaultValue={student.lastName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
+                            <input type="text" name="lastName" defaultValue={student.lastName} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
                           </td>
                           <td className='px-2'>
-                            <select defaultValue={student.groupName} aria-label={`Groupe de ${student.firstName} ${student.lastName}`} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-3 h-[25px]'>
-                              {groupsOfPromo.map((thisGroup) => (
-                                <option key={thisGroup} value={thisGroup}>{thisGroup}</option>
-                              ))}
+                            <select name="groupName" defaultValue={student.groupName} aria-label="Groupe de l’élève" className="border border-gray-300 rounded-md w-full px-2 h-[25px]">
+                              {groupsOfPromo.map((group) => <option key={group} value={group}>{group}</option>)}
                             </select>
                           </td>
                           <td className='px-2'>
                             <smart-drop-down-list selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
-                              <smart-list-item value="1">Tiers Temps</smart-list-item>
+                              <smart-list-item value="1" selected={student.extraTime ?? false}>Tiers Temps</smart-list-item>
                               <smart-list-item value="2" selected={student.needsPowerOutlet}>Prise Electrique</smart-list-item>
-                              <smart-list-item value="3">Autre</smart-list-item>
+                              <smart-list-item value="3" selected={student.otherAccommodation ?? false}>Autre</smart-list-item>
                             </smart-drop-down-list>
                           </td>
                           <td>
-                            <div className='flex items-center justify-center px-2 py-1 border-1 border-gray-300 rounded-md hover:bg-[#7A1B1B]'><img src="/trash.svg" onClick={() => dialogConfirmStudent.current?.showModal()} alt="Supprimer un élève" className='invert-[90%]'/></div>
+                            <div onClick={() => {setDeletingStudentId(student.id), setError(''), dialogConfirmStudent.current?.showModal()}} className='flex items-center justify-center px-2 py-1 border-1 border-gray-300 rounded-md hover:bg-[#7A1B1B]'>
+                              <img src="/trash.svg" alt="Supprimer un élève" className='invert-[90%]'/>
+                            </div>
                           </td>
                         </tr>
                       ))}
+                    {studentDrafts.filter((draft) => draft.groupName === thisGroup).map((draft) => (
+                      <tr key={draft.id} data-student-row>
+                        <td className='px-2'>
+                          <input name="firstName" type="text" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
+                        </td>
+                        <td className='px-2'>
+                          <input name="lastName" type="text" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2 h-[25px]' />
+                        </td>
+                        <td className='px-2'>
+                          <select name="groupName" defaultValue={thisGroup} aria-label={`Groupe`} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-3 h-[25px]'>
+                            {groupsOfPromo.map((thisGroup) => (
+                              <option key={thisGroup} value={thisGroup}>{thisGroup}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className='px-2'>
+                          <smart-drop-down-list selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements`} className="amenities-dropdown max-w-full">
+                            <smart-list-item value="1">Tiers Temps</smart-list-item>
+                            <smart-list-item value="2">Prise Electrique</smart-list-item>
+                            <smart-list-item value="3">Autre</smart-list-item>
+                          </smart-drop-down-list>
+                        </td>
+                        <td>
+                          <div className='flex items-center justify-center px-2 py-1 border-1 border-gray-300 rounded-md hover:bg-[#7A1B1B]'><img src="/trash.svg" onClick={() => setStudentDrafts((drafts) => drafts.filter((item) => item.id !== draft.id))} alt="Supprimer un élève" className='invert-[90%]'/></div>
+                        </td>
+                      </tr>
+                    ))}
                     <tr>
                       <td colSpan={5} className='px-2'>
-                        <button type="button" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full cursor-pointer'>+</button>
+                        <button onClick={() => {
+                          const draft = { id: crypto.randomUUID(), groupName: thisGroup }
+                          setStudentDrafts((drafts) => [...drafts, draft])
+                        }} type="button" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full cursor-pointer'>+</button>
                       </td>
                     </tr>
                   </tbody>
@@ -292,7 +460,7 @@ function PromoPage() {
             ))}
           </div>
         </div>
-      </div>
+      </fieldset>
     </dialog>
 
     {/* Dialog confirm del promo*/}
@@ -312,16 +480,35 @@ function PromoPage() {
       </div>
     </dialog>
 
-    {/* Dialog confirm del */}
-    <dialog ref={dialogConfirmStudent} onClose={resetDialog} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
+    {/* Dialog confirm del etudiant*/}
+    <dialog ref={dialogConfirmStudent} onCancel={(event) => { if (deletingStudent) event.preventDefault() }} onClose={() => { setDeletingStudentId(null); resetDialog() }} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
       <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
         <div className='flex justify-between'>
           <div>
             <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer cet étudiant ?</h1>
             <h2>Cette action est définitive.</h2>
+            {error && <p role="alert" className="mt-3 text-red-200">{error}</p>}
             <div className='pt-5 flex gap-5'>
-              <button type="button" className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
-              <button type="button" onClick={() => dialogConfirmStudent.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
+              <button type="button" onClick={deleteStudents} disabled={deletingStudent || deletingStudentId === null} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>{deletingStudent ? 'Suppression…' : 'Supprimer'}</button>
+              <button type="button" disabled={deletingStudent} onClick={() => dialogConfirmStudent.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
+            </div>
+          </div>
+          <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
+        </div>
+      </div>
+    </dialog>
+
+    {/* Dialog confirm del groupes*/}
+    <dialog ref={dialogConfirmGroup} onCancel={(event) => { if (groupDeleteInProgress.current) event.preventDefault() }} onClose={() => { setGroupToDelete(null); setGroupDeleteError('') }} className="m-auto w-[45%] h-[25%] rounded-md bg-transparent backdrop:bg-black/50">
+      <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+        <div className='flex justify-between'>
+          <div>
+            <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer le groupe « {groupToDelete} » ? Tous les étudiants de ce groupe seront également supprimés.</h1>
+            <h2>Cette action est définitive.</h2>
+            {groupDeleteError && <p role="alert" className="mt-3 text-red-200">{groupDeleteError}</p>}
+            <div className='pt-5 flex gap-5'>
+              <button type="button" onClick={() => { if (groupToDelete !== null) void deleteGroup(groupToDelete) }} disabled={deletingGroup !== null || groupToDelete === null} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>{deletingGroup !== null ? 'Suppression…' : 'Supprimer'}</button>
+              <button type="button" disabled={deletingGroup !== null} onClick={() => dialogConfirmGroup.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
             </div>
           </div>
           <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>

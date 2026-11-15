@@ -264,7 +264,7 @@ function ClassDispositionPage() {
           </div>
         </div>
       </div>
-      <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mt-10 rounded-md'>
+      <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mt-10 mb-2 rounded-md'>
         <h2>Bureau</h2>
       </div>
       <div className='flex-1 min-h-0 w-full overflow-auto flex'>
