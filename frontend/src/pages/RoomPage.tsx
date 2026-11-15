@@ -251,18 +251,11 @@ function RoomPage() {
           </dialog>
         </form>
 
-        <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
+        <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[40%] h-[70%] rounded-md bg-transparent backdrop:bg-black/50">
           <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
             <div className='flex justify-between'>
-              <div>
                 <h1 className='text-2xl'>Création d'un plan de classe en {roomName}</h1>
-
-                <div className='pt-5 flex gap-5'>
-                  <button type="button" onClick={deleteRoom} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
-                  <button type="button" onClick={() => dialogConfirm.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
-                </div>
-              </div>
-              <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
+                <img onClick={() => dialogBuildClassPlan.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
             </div>
           </div>
         </dialog>
