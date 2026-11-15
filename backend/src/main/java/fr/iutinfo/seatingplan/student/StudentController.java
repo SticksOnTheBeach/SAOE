@@ -59,6 +59,7 @@ public class StudentController {
 	    	 student.setLastName(newStudent.getLastName());
 	    	 student.setGroupName(newStudent.getGroupName());
 	    	 student.setRequiredEquipment(newStudent.getRequiredEquipment());
+	    	 student.setExtraTime(newStudent.isExtraTime());
 	        return studentRepository.save(student);
 	      })
 	      .orElseGet(() -> {
