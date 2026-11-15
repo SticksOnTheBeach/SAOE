@@ -99,7 +99,9 @@ const PromoPage = () => {
         const selected = box.selectedValues
         if (!Array.isArray(selected)) return
         const equipment = selected.filter((v): v is Equipment => v === 'PRM' || v === 'POWER_OUTLET')
-        updateDraft(student, (d) => ({ ...d, requiredEquipment: equipment }))
+        // tiers temps: not a seat equipment, saved as its own field
+        const extraTime = selected.includes('EXTRA_TIME')
+        updateDraft(student, (d) => ({ ...d, requiredEquipment: equipment, extraTime }))
       }
       box.addEventListener('change', box.__onEquipment)
     }
@@ -506,7 +508,7 @@ const PromoPage = () => {
                                   </td>
                                   <td className='px-2'>
                                     <smart-drop-down-list ref={bindEquipment(student)} selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
-                                      <smart-list-item value="1">Tiers Temps</smart-list-item>
+                                      <smart-list-item value="EXTRA_TIME" selected={student.extraTime ?? false}>Tiers Temps</smart-list-item>
                                       <smart-list-item value="POWER_OUTLET" selected={(student.requiredEquipment ?? []).includes('POWER_OUTLET')}>Prise Electrique</smart-list-item>
                                       <smart-list-item value="PRM" selected={(student.requiredEquipment ?? []).includes('PRM')}>PMR</smart-list-item>
                                       <smart-list-item value="3">Autre</smart-list-item>
