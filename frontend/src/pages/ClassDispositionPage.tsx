@@ -208,13 +208,14 @@ function ClassDispositionPage() {
   }
 
   return (
-    <div className='flex flex-col h-[calc(100vh-130px)] p-5 overflow-hidden'>
-      <div className='grid grid-cols-3 items-start'>
-        <div>
-          <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1><img onClick={() => dialogRefHelp.current?.showModal()} src="/question-circle.svg" alt="" className='w-5 h-auto cursor-pointer'/></div>
-          <h2>Salle {data.name}</h2>
+    <div className='flex flex-between h-[calc(100vh-130px)] overflow-hidden'>
+      <div className='flex-1 grid grid-rows-3 items-start bg-gray-200 p-10 rounded-r-2xl'>
+        <div className='flex flex-col items-center justify-self-center self-center text-center'>
+          <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1></div>
+          <h2 className='text-xl'>Salle {data.name}</h2>
+          <p className='flex gap-2 text-l cursor-pointer mt-3' onClick={() => dialogRefHelp.current?.showModal()}><img src="/question-circle.svg" alt="" className='w-5 h-auto'/>Help</p>
         </div>
-        <div className='justify-self-center flex flex-col items-center'>
+        <div className='justify-self-center flex flex-col items-center mt-10'>
           <h2 className='text-center text-xl pb-2'>Type de sélection</h2>
           <div className='flex gap-5 p-2 rounded-md'>
             <h3 className={`pt-1 text-l ${isMultiple ? 'font-normal' : 'font-bold'}`}>Simple</h3>
@@ -245,7 +246,7 @@ function ClassDispositionPage() {
             </div>
           )}
         </div>
-        <div className='flex flex-col gap-3 justify-self-end'>
+        <div className='flex flex-col gap-3 justify-self-center'>
           <div className='flex gap-1'>
             <div className='w-5 h-5 bg-[#AAD690] rounded-md'></div>
             <p>Place disponible</p>
@@ -263,61 +264,61 @@ function ClassDispositionPage() {
             <p>Couloir</p>
           </div>
         </div>
-      </div>
-      <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mt-10 mb-2 rounded-md'>
-        <h2>Bureau</h2>
-      </div>
-      <div className='flex-1 min-h-0 w-full overflow-auto flex'>
-        <div
-          className='grid gap-2 m-auto pr-10'
-          style={{
-            '--cell-size': `clamp(1.5rem, min(4rem, calc((100vh - 340px) / ${Number(data.rows)}), calc((100vw - 160px) / ${Number(data.columns)})), 4rem)`,
-            gridTemplateColumns: `2rem repeat(${Number(data.columns)}, var(--cell-size))`,
-            gridTemplateRows: `2rem repeat(${Number(data.rows)}, var(--cell-size))`,
-          } as React.CSSProperties}
-        >
-          <div />
-          {Array.from({ length: Number(data.columns) }, (_, column) => (
-            <p key={`col-${column}`} onClick={() => handleColumnClick(column)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex items-center justify-center'>
-              {column + 1}
-            </p>
-          ))}
-          {Array.from({ length: Number(data.rows) }, (_, row) => (
-            <Fragment key={`row-${row}`}>
-              <p onClick={() => handleRowClick(row)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex items-center justify-center'>
-                {row + 1}
-              </p>
-              {Array.from({ length: Number(data.columns) }, (_, column) => {
-                const key = `${row}-${column}`
-                const status = cellStatuses[key]
-                const colorClass = status ? STATUS_COLORS[status] : 'bg-gray-200'
-                const isSelected = isMultiple && selectedCells.includes(key)
-
-                return (
-                  <div
-                    key={key}
-                    onClick={(e) => handleCellClick(e, row, column)}
-                    className={`cursor-pointer rounded-md ${colorClass} ${isSelected ? 'ring-3 ring-blue-500' : ''}`}
-                  ></div>
-                )
-              })}
-            </Fragment>
-          ))}
+        <div className='flex justify-center mt-5'>
+          <button onClick={saveRoom} disabled={loading} className='cursor-pointer text-center text-white border-2 border-gray-900 px-10 py-2 rounded-md bg-[#B51621] hover:bg-[#D43B46] hover:border-gray-700'>
+            {loading ? 'Sauvegarde en cours…' : `Sauvegarder`}
+          </button>
         </div>
       </div>
-      {error && (
-        <p className="text-center text-red-600 font-bold pb-3">{error}</p>
-      )}
-      <div className='flex justify-center'>
-        <button
-          onClick={saveRoom}
-          disabled={loading}
-          className='cursor-pointer text-center text-white border-2 border-gray-900 px-10 py-2 rounded-md bg-[#B51621] hover:bg-[#D43B46] hover:border-gray-700'
-        >
-          {loading ? 'Sauvegarde en cours…' : `Sauvegarder`}
-        </button>
-      </div>
+      <div className='flex-3 p-5'>
+        <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mt-10 mb-10 mb-2 rounded-md'>
+          <h2>Bureau</h2>
+        </div>
+        <div className='flex-1 min-h-0 w-full overflow-auto flex'>
+          <div
+            className='grid gap-2 m-auto pr-10'
+            style={{
+              '--cell-size': `clamp(1.5rem, min(4rem, calc((100vh - 340px) / ${Number(data.rows)}), calc((100vw - 160px) / ${Number(data.columns)})), 4rem)`,
+              gridTemplateColumns: `2rem repeat(${Number(data.columns)}, var(--cell-size))`,
+              gridTemplateRows: `2rem repeat(${Number(data.rows)}, var(--cell-size))`,
+            } as React.CSSProperties}
+          >
+            <div />
+            {Array.from({ length: Number(data.columns) }, (_, column) => (
+              <p key={`col-${column}`} onClick={() => handleColumnClick(column)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex items-center justify-center'>
+                {column + 1}
+              </p>
+            ))}
+            {Array.from({ length: Number(data.rows) }, (_, row) => (
+              <Fragment key={`row-${row}`}>
+                <p onClick={() => handleRowClick(row)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex items-center justify-center'>
+                  {row + 1}
+                </p>
+                {Array.from({ length: Number(data.columns) }, (_, column) => {
+                  const key = `${row}-${column}`
+                  const status = cellStatuses[key]
+                  const colorClass = status ? STATUS_COLORS[status] : 'bg-gray-200'
+                  const isSelected = isMultiple && selectedCells.includes(key)
 
+                  return (
+                    <div
+                      key={key}
+                      onClick={(e) => handleCellClick(e, row, column)}
+                      className={`cursor-pointer rounded-md ${colorClass} ${isSelected ? 'ring-3 ring-blue-500' : ''}`}
+                    ></div>
+                  )
+                })}
+              </Fragment>
+            ))}
+          </div>
+        </div>
+        {error && (
+          <p className="text-center text-red-600 font-bold pb-3">{error}</p>
+        )}
+      </div>
+      
+      
+      {/* */}
       <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-fit rounded-md bg-transparent backdrop:bg-black/50">
         <div className='bg-gray-200/90 p-5'>
           <div className='flex justify-between'>
