@@ -314,7 +314,7 @@ function ClassDispositionPage() {
           disabled={loading}
           className='cursor-pointer text-center text-white border-2 border-gray-900 px-10 py-2 rounded-md bg-[#B51621] hover:bg-[#D43B46] hover:border-gray-700'
         >
-          {loading ? 'Sauvegarde en cours…' : `Sauvegarder la salle ${data.name}`}
+          {loading ? 'Sauvegarde en cours…' : `Sauvegarder`}
         </button>
       </div>
 
@@ -341,7 +341,7 @@ function ClassDispositionPage() {
             <br />Une fois la sélection faite, vous choisissez dans le menu déroulant en haut de la page le status de l'emplacement qui s'appliquera à la sélection.
           </p>
           <br />
-          <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "Sauvgarder la salle" en bas de la page pour sauvegarder la salle.</h2>
+          <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "Sauvegarder la salle" en bas de la page pour sauvegarder la salle.</h2>
         </div>
       </dialog>
 
