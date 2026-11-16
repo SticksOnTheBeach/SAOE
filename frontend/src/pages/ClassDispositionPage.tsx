@@ -354,10 +354,10 @@ function ClassDispositionPage() {
         <div className='p-2 bg-gray-600/75'>
           <p className='text-center pt-2 pb-4 text-xl text-white'>Statut du placement</p>
           <div className='rounded-md cursor-pointer'>
-            <p onClick={() => handleSelectStatus('disponible')} className='bg-[#AAD690] hover:bg-[#BFE3A8] p-2'>Disponible</p>
-            <p onClick={() => handleSelectStatus('interdite')} className='bg-[#A84747] hover:bg-[#B56060] p-2 text-white'>Interdite</p>
-            <p onClick={() => handleSelectStatus('prise')} className='bg-[#EDEB87] hover:bg-[#FAF8B1] p-2'>Avec Prise</p>
-            <p onClick={() => handleSelectStatus('couloir')} className='bg-[#EBEBEB] hover:bg-[#F5F5F5] p-2'>Couloir</p>
+            <div className='flex gap-2 bg-[#AAD690] hover:bg-[#BFE3A8] p-2'><img src="/valid.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('disponible')}>Disponible</p></div>
+            <div className='flex gap-2 bg-[#A84747] hover:bg-[#B56060] p-2'><img src="/cross.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('interdite')}>Interdite</p></div>
+            <div className='flex gap-2 bg-[#EDEB87] hover:bg-[#FAF8B1] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('prise')}>Avec Prise</p></div>
+            <div className='flex gap-2 bg-[#EBEBEB] hover:bg-[#F5F5F5] p-2'><img src="/empty.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('couloir')}>Couloir</p></div>
           </div>
         </div>
       </dialog>

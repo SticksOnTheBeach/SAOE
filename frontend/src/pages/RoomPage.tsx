@@ -9,6 +9,15 @@ interface Room {
   usableSeatCount: number
 }
 
+interface Promo {
+  id: number
+  name: string
+}
+
+interface StudentPromo {
+  promo: Promo | null
+}
+
 function RoomPage() {
   const navigate = useNavigate()
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -26,7 +35,13 @@ function RoomPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const totalPlaces = Number(planX) * Number(planY)
   const [rooms, setRooms] = useState<Room[]>([])
+  const [promos, setPromos] = useState<Promo[]>([])
+  const [studentCounts, setStudentCounts] = useState<Record<number, number>>({})
+  const [selectedPromoId, setSelectedPromoId] = useState('')
+  const [promosLoading, setPromosLoading] = useState(true)
+  const [promosError, setPromosError] = useState('')
   const [selectedCells, setSelectedCells] = useState<string[]>([])
+  const [availableSeats, setAvailableSeats] = useState(0)
 
   async function fetchRooms() {
     try {
@@ -101,6 +116,42 @@ function RoomPage() {
     fetchRooms()
   }, [])
 
+  useEffect(() => {
+    const controller = new AbortController()
+    async function fetchPromos() {
+      try {
+        // Deux appels en parallèle, plutôt qu'un appel par promotion.
+        const [res, studentsRes] = await Promise.all([
+          fetch('/api/promos', { signal: controller.signal }),
+          fetch('/api/students', { signal: controller.signal }),
+        ])
+        if (!res.ok) throw new Error(`Chargement des promotions impossible (HTTP ${res.status}).`)
+        if (!studentsRes.ok) throw new Error(`Chargement des effectifs impossible (HTTP ${studentsRes.status}).`)
+        const data: Promo[] = await res.json()
+        const students: StudentPromo[] = await studentsRes.json()
+        // Initialiser aussi les promotions vides à zéro. Les élèves sans promo sont ignorés.
+        const counts: Record<number, number> = {}
+        for (const promo of data) counts[promo.id] = 0
+        for (const student of students) {
+          if (student.promo) {
+            const promoId = student.promo.id
+            counts[promoId] = (counts[promoId] ?? 0) + 1
+          }
+        }
+        setStudentCounts(counts)
+        setPromos(data)
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          setPromosError(err instanceof Error ? err.message : 'Erreur de chargement des promotions.')
+        }
+      } finally {
+        if (!controller.signal.aborted) setPromosLoading(false)
+      }
+    }
+    void fetchPromos()
+    return () => controller.abort()
+  }, [])
+
   function openCreate() {
     setEditingId(null)
     setPlanName('')
@@ -167,7 +218,7 @@ function RoomPage() {
                 <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
                 <div className="flex justify-center mt-6 invisible group-hover:visible gap-2">
                   <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
-                  <img onClick={(e) => dialogBuildClassPlan.current?.showModal()} src="/file-earmark-text.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
+                  <img onClick={(e) => { e.stopPropagation(); setRoomName(room.name); setSelectedPromoId(''); dialogBuildClassPlan.current?.showModal(); setAvailableSeats(room.usableSeatCount)}} src="/file-earmark-text.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
                   <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
                 </div>
               </div>
@@ -251,12 +302,42 @@ function RoomPage() {
           </dialog>
         </form>
 
-        <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[40%] h-[70%] rounded-md bg-transparent backdrop:bg-black/50">
+        <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[40%] h-[32%] rounded-md bg-transparent backdrop:bg-black/50">
           <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+
             <div className='flex justify-between'>
                 <h1 className='text-2xl'>Création d'un plan de classe en {roomName}</h1>
                 <img onClick={() => dialogBuildClassPlan.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
             </div>
+            
+            <form action="">
+              <table className="w-full mt-15 border-separate border-spacing-y-3">
+                <tbody>
+                  <tr>
+                    <th scope="row" className="text-left font-normal align-middle pr-4">
+                      <label htmlFor="placement-name">Nom du placement de classe <span className='text-gray-400'>(optionnel)</span> :</label>
+                    </th>
+                    <td className="align-middle">
+                      <input value={planName} onChange={(e) => setPlanName(e.target.value)} type="text" name="placementName" id="placement-name" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' maxLength={30} placeholder='BUT2-R47'/>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th scope="row" className="text-left font-normal align-middle pr-4">
+                      <label htmlFor="placement-promo">Promotion à placer :</label>
+                    </th>
+                    <td className="align-middle">
+                      <select id="placement-promo" name="promoId" value={selectedPromoId} onChange={(event) => setSelectedPromoId(event.target.value)} disabled={promosLoading || promos.length === 0} className="border border-gray-300 rounded-md w-full px-2 h-[25px]">
+                        <option value="" disabled className='bg-[#791111]'>{promosLoading ? 'Chargement…' : promos.length === 0 ? 'Aucune promotion disponible' : 'Choisir une promotion'}</option>
+                        {promos.map((promo) => <option key={promo.id} value={promo.id} className='bg-[#791111]' disabled={studentCounts[promo.id] > availableSeats || studentCounts[promo.id] === 0}>{promo.name} ({studentCounts[promo.id]} étudiants)</option>)}
+                      </select>
+                      {promosError && <p role="alert" className="text-red-200">{promosError}</p>}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </form>
+
+            <button type="button" className='border-2 border-gray-400 py-2 rounded-md hover:bg-[#7A1B1B] mt-5'>Générer le plan</button>
           </div>
         </dialog>
       </div>
