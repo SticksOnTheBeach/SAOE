@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# 1. Lance Docker Desktop s'il n'est pas démarré, et attend qu'il soit prêt
 if ! docker info >/dev/null 2>&1; then
   echo "Démarrage de Docker Desktop..."
   open -a Docker
   until docker info >/dev/null 2>&1; do sleep 2; done
 fi
 
-# 2. Démarre la base, ou la crée si elle n'existe pas
 if docker ps -a --format '{{.Names}}' | grep -q '^saoe-db$'; then
   docker start saoe-db
 else

@@ -1,6 +1,8 @@
 package fr.iutinfo.seatingplan.room;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -25,8 +27,15 @@ import jakarta.validation.constraints.Positive;
 public class RoomController {
 	private RoomRepository roomRepository;
 	
-	public record SeatRequest(int row, int column, @NotNull SeatType type) { }
-
+	// record permettant de gérer le fais que si le json renvoyé par le site sur l'api de contient pas de equipment et bien ça crash pas
+	public record SeatRequest(int row, int column, @NotNull SeatType type, List<SeatEquipment> equipment) {
+	    public SeatRequest {
+	        equipment = (equipment == null) ? List.of() : equipment;
+	    }
+	}
+	
+	
+	// on laisse sous entendre au programme que la réponse attendu renvoyé comme requête par le serveur, est sous la forme suivante, donc on attend ça de la part du serveur du moins comme requete d'envoie sur Api
 	public record RoomCreateRequest(
 	    @NotBlank String name,
 	    @Positive int rows,
@@ -34,21 +43,45 @@ public class RoomController {
 	    @NotNull @Valid List<SeatRequest> seats) { }
 	
 
+	public record SeatResponse(String id, int row, int column, SeatType type, List<SeatEquipment> equipment, boolean usable) {
+		static SeatResponse from(Seat s) {
+			return new SeatResponse(s.getId(), s.getRow(), s.getColumn(), s.getType(), s.getEquipment(), s.isUsable());
+		}
+	}
+		
 	
+	public record RoomResponse(String id, String name, int rows, int columns, int seatCount, int usableSeatCount, List<SeatResponse> seats) {
+		static RoomResponse from(Room r) {
+			// pour r.getSeat Cette ligne, dans RoomResponse.from, transforme chaque Seat de la salle en SeatResponse.
+			return new RoomResponse(r.getId(), r.getName(), r.getRows(), r.getColumns(), r.getSeatCount(), r.getUsableSeatCount(), r.getSeats().stream().map(SeatResponse::from).toList());
+		}
+	}
 	
 	public RoomController(RoomRepository repository) {
 		this.roomRepository = repository;
 	}
 	
 	@GetMapping()
-	public List<Room> all(){
-		return roomRepository.findAll();
+	public List<RoomResponse> all(){
+		return roomRepository.findAll().stream().map(RoomResponse::from).toList();
 	}
 	
 	@GetMapping("/{id}")
-	public Room one(@PathVariable String id) {
-		return roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
+	public RoomResponse one(@PathVariable String id) {
+	    return RoomResponse.from(roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id)));
 	}
+	
+	@GetMapping("/{id}/equipment")
+	public Map<SeatEquipment, Integer> roomEquipment(@PathVariable String id) {
+		Room room = roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException(id));
+		
+		Map<SeatEquipment, Integer> equipmentCounts = new EnumMap<>(SeatEquipment.class);
+		for (SeatEquipment equipment : SeatEquipment.values()) {
+			equipmentCounts.put(equipment, room.countWith(equipment));
+		}
+		return equipmentCounts;
+	}
+	
 	
 	
 	
@@ -59,21 +92,24 @@ public class RoomController {
 		if (!roomRepository.existsById(id)) {
 		    throw new RoomNotFoundException(id);
 		}
+		// roomRepository.deleteById(id);
 		roomRepository.deleteById(id);
 	}
 	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Room create(@RequestBody RoomCreateRequest request) {
+	public RoomResponse create(@RequestBody RoomCreateRequest request) {
 
-		List<Seat> seats = request.seats().stream()
-		        .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type()))
-		        .toList();
-
+	    // le new Seat doit être DANS le try : c'est lui qui râle si on demande une place interdite avec des
+	    // équipements, et on veut que ça sorte en 400 (InvalidRoomException) et pas en 500
 	    try {
+	    	List<Seat> seats = request.seats().stream()
+		        .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type(), s.equipment()))
+		        .toList();
+			
 	        Room room = new Room(UUID.randomUUID().toString(),
 	                request.name(), request.rows(), request.columns(), seats);
-	        return roomRepository.save(room);
+	        return RoomResponse.from(roomRepository.save(room));
 	    } catch (IllegalArgumentException e) {
 	        throw new InvalidRoomException(e.getMessage());
 	    }
@@ -87,11 +123,13 @@ public class RoomController {
 	    Room room = roomRepository.findById(id)
 	            .orElseThrow(() -> new RoomNotFoundException(id));
 
-	    List<Seat> seats = request.seats().stream()
-	            .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type()))
-	            .toList();
-
+	    // pareil que le POST : construction des places dans le try, et on passe bien s.equipment()
+	    // sinon le PUT effaçait tous les équipements de la salle à chaque modif
 	    try {
+	    	List<Seat> seats = request.seats().stream()
+	            .map(s -> new Seat(UUID.randomUUID().toString(), s.row(), s.column(), s.type(), s.equipment()))
+	            .toList();
+			
 	        room.update(request.name(), request.rows(), request.columns(), seats);
 	    } catch (IllegalArgumentException e) {
 	        throw new InvalidRoomException(e.getMessage());
