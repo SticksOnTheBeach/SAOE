@@ -32,7 +32,7 @@ function PromoPage() {
   const dialogChargement = useRef<HTMLDialogElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [editingId, setEditingId] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
   const [deletingStudentId, setDeletingStudentId] = useState<number | null>(null)
   const [deletingStudent, setDeletingStudent] = useState(false)
   const [groupToDelete, setGroupToDelete] = useState<string | null>(null)
@@ -270,7 +270,7 @@ function PromoPage() {
   async function deletePromo() {
     if (!deletingId) return
     try {
-      const res = await fetch(`/api/promo/${deletingId}`, {
+      const res = await fetch(`/api/promos/${deletingId}?withStudents=true`, {
         method: 'DELETE',
       })
       if (res.ok) {
@@ -304,7 +304,7 @@ function PromoPage() {
                           event.stopPropagation()
                           openPromoDialog(promo)
                         }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
-                        <img onClick={(e) => { e.stopPropagation(); setDeletingId(promo.name); dialogConfirmPromo.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
+                        <img onClick={(e) => { e.stopPropagation(); setDeletingId(promo.id); dialogConfirmPromo.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
                     </div>
                 </div>
             </div>

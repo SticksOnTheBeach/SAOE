@@ -218,7 +218,7 @@ function RoomPage() {
                 <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
                 <div className="flex justify-center mt-6 invisible group-hover:visible gap-2">
                   <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
-                  <img onClick={(e) => { e.stopPropagation(); setRoomName(room.name); setSelectedPromoId(''); dialogBuildClassPlan.current?.showModal(); setAvailableSeats(room.usableSeatCount)}} src="/file-earmark-text.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
+                  <img onClick={(e) => { e.stopPropagation(); setRoomName(room.name); setSelectedPromoId(''); dialogBuildClassPlan.current?.showModal(); setAvailableSeats(room.usableSeatCount)}} src="/grid.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
                   <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
                 </div>
               </div>
