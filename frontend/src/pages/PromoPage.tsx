@@ -471,8 +471,8 @@ function PromoPage() {
             <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer cette promotion ?</h1>
             <h2>Cette action est définitive.</h2>
             <div className='pt-5 flex gap-5'>
-              <button type="button" onClick={deletePromo} className='border-2 border-gray-900 px-5 py-2 rounded-md hover:bg-[#FFBDBD]'>Supprimer</button>
-              <button type="button" onClick={() => dialogConfirmPromo.current?.close()} className='border-2 border-gray-900 px-5 py-2 rounded-md hover:bg-[#FFBDBD]'>Annuler</button>
+              <button type="button" onClick={deletePromo} className='border-2 border-gray-300 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
+              <button type="button" onClick={() => dialogConfirmPromo.current?.close()} className='border-2 border-gray-300 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
             </div>
           </div>
           <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
