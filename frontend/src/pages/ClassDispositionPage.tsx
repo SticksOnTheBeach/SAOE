@@ -28,6 +28,7 @@ function ClassDispositionPage() {
   const navigate = useNavigate()
   const dialogRefHelp = useRef<HTMLDialogElement>(null)
   const dialogChoicePlacementSingle = useRef<HTMLDialogElement>(null)
+  const dialogChoicePlacementSingleArangement = useRef<HTMLDialogElement>(null)
   const location = useLocation()
   const data = location.state as RoomState | null
   const [isMultiple, setIsMultiple] = useState(false)
@@ -318,7 +319,7 @@ function ClassDispositionPage() {
       </div>
       
       
-      {/* */}
+      {/* Aide */}
       <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-fit rounded-md bg-transparent backdrop:bg-black/50">
         <div className='bg-gray-200/90 p-5'>
           <div className='flex justify-between'>
@@ -345,20 +346,35 @@ function ClassDispositionPage() {
           <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "Sauvegarder la salle" en bas de la page pour sauvegarder la salle.</h2>
         </div>
       </dialog>
-
-      <dialog
-        ref={dialogChoicePlacementSingle}
-        onClick={(e) => { if (e.target === dialogChoicePlacementSingle.current) dialogChoicePlacementSingle.current?.close() }}
-        style={{ left: `${menuPos.x}px`, top: `${menuPos.y}px` }}
-        className="m-0 fixed w-50 h-min rounded-md bg-transparent backdrop:bg-black/50"
-      >
+      
+      {/* Dialog placement */}
+      <dialog ref={dialogChoicePlacementSingle} onClick={(e) => { if (e.target === dialogChoicePlacementSingle.current) dialogChoicePlacementSingle.current?.close() }} style={{ left: `${menuPos.x}px`, top: `${menuPos.y}px` }} className="m-0 fixed w-50 h-min rounded-md bg-transparent backdrop:bg-black/50">
         <div className='p-2 bg-gray-600/75'>
           <p className='text-center pt-2 pb-4 text-xl text-white'>Statut du placement</p>
           <div className='rounded-md cursor-pointer'>
             <div className='flex gap-2 bg-[#AAD690] hover:bg-[#BFE3A8] p-2'><img src="/valid.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('disponible')}>Disponible</p></div>
             <div className='flex gap-2 bg-[#A84747] hover:bg-[#B56060] p-2'><img src="/cross.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('interdite')}>Interdite</p></div>
-            <div className='flex gap-2 bg-[#EDEB87] hover:bg-[#FAF8B1] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('prise')}>Avec Prise</p></div>
             <div className='flex gap-2 bg-[#EBEBEB] hover:bg-[#F5F5F5] p-2'><img src="/empty.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('couloir')}>Couloir</p></div>
+            <div onClick={() => {dialogChoicePlacementSingle.current?.close(); dialogChoicePlacementSingleArangement.current?.showModal()}} className='flex gap-2 bg-[#EDEB87] hover:bg-[#FAF8B1] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p>Aménagement(s)</p></div>
+          </div>
+        </div>
+      </dialog>
+      
+      {/* Dialog placement dispo */}
+      <dialog ref={dialogChoicePlacementSingleArangement} onClick={(e) => { if (e.target === dialogChoicePlacementSingleArangement.current) dialogChoicePlacementSingleArangement.current?.close() }} style={{ left: `${menuPos.x}px`, top: `${menuPos.y}px` }} className="m-0 fixed w-50 h-min rounded-md bg-transparent backdrop:bg-black/50">
+        <div className='p-2 bg-gray-600/75'>
+          <div className='flex justify-center gap-1'>
+            <img src="/exit.svg" alt="" className='invert h-7 w-auto' onClick={() => {dialogChoicePlacementSingleArangement.current?.close(); dialogChoicePlacementSingle.current?.showModal()}}/>
+            <p className='text-xl text-gray-100'>Retour</p>
+          </div>
+          <p className='text-center pt-2 pb-4 text-xl text-white'>Type d'aménagement</p>
+          <div className='rounded-md cursor-pointer'>
+            <div onClick={() => { handleSelectStatus('disponible'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#354A23] hover:bg-[#405E26] p-2'><img src="/virus.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Malade</p></div>
+            <div onClick={() => { handleSelectStatus('interdite'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#636363] hover:bg-[#787878] p-2'><img src="/stopwatch.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Tier-temps</p></div>
+            <div onClick={() => { handleSelectStatus('prise'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#999900] hover:bg-[#ADAD00] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Prise Nécessaire</p></div>
+            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#4F2063] hover:bg-[#63237D] p-2'><img src="/person-wheelchair.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Handicap Mobile</p></div>
+            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#4F3710] hover:bg-[#634512] p-2'><img src="/door-open.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Proche de la sortie</p></div>
+            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#1D5956] hover:bg-[#156B67] p-2'><img src="/no_noise.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Place Calme</p></div>
           </div>
         </div>
       </dialog>
