@@ -355,7 +355,7 @@ function ClassDispositionPage() {
             <div className='flex gap-2 bg-[#AAD690] hover:bg-[#BFE3A8] p-2'><img src="/valid.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('disponible')}>Disponible</p></div>
             <div className='flex gap-2 bg-[#A84747] hover:bg-[#B56060] p-2'><img src="/cross.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('interdite')}>Interdite</p></div>
             <div className='flex gap-2 bg-[#EBEBEB] hover:bg-[#F5F5F5] p-2'><img src="/empty.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('couloir')}>Couloir</p></div>
-            <div onClick={() => {dialogChoicePlacementSingle.current?.close(); dialogChoicePlacementSingleArangement.current?.showModal()}} className='flex gap-2 bg-[#EDEB87] hover:bg-[#FAF8B1] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p>Aménagement(s)</p></div>
+            <div onClick={() => {dialogChoicePlacementSingle.current?.close(); dialogChoicePlacementSingleArangement.current?.showModal()}} className='flex gap-2 bg-[#8F72B0] hover:bg-[#A08ABA] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p>Aménagement(s)</p></div>
           </div>
         </div>
       </dialog>
@@ -369,12 +369,9 @@ function ClassDispositionPage() {
           </div>
           <p className='text-center pt-2 pb-4 text-xl text-white'>Type d'aménagement</p>
           <div className='rounded-md cursor-pointer'>
-            <div onClick={() => { handleSelectStatus('disponible'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#354A23] hover:bg-[#405E26] p-2'><img src="/virus.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Malade</p></div>
-            <div onClick={() => { handleSelectStatus('interdite'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#636363] hover:bg-[#787878] p-2'><img src="/stopwatch.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Tier-temps</p></div>
-            <div onClick={() => { handleSelectStatus('prise'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#999900] hover:bg-[#ADAD00] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Prise Nécessaire</p></div>
-            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#4F2063] hover:bg-[#63237D] p-2'><img src="/person-wheelchair.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Handicap Mobile</p></div>
-            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#4F3710] hover:bg-[#634512] p-2'><img src="/door-open.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Proche de la sortie</p></div>
-            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#1D5956] hover:bg-[#156B67] p-2'><img src="/no_noise.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[75%]' alt="" /><p className='text-gray-300'>Place Calme</p></div>
+            <div onClick={() => { handleSelectStatus('interdite'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#D4D4D4] hover:bg-[#E3E3E3] p-2'><img src="/stopwatch.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Tier-temps</p></div>
+            <div onClick={() => { handleSelectStatus('prise'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#A1A1A1] hover:bg-[#BFBFBF] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Prise Nécessaire</p></div>
+            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#D4D4D4] hover:bg-[#E3E3E3] p-2'><img src="/person-wheelchair.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Handicap Mobile</p></div>
           </div>
         </div>
       </dialog>
