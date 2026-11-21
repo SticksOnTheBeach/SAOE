@@ -29,3 +29,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+
+.codex/
+Soutenance_SAOE.pptx
