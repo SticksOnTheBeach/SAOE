@@ -243,17 +243,17 @@ function RoomPage() {
                     <div className='flex flex-col pt-15 gap-5'>
                       <div>
                         <label htmlFor="name">Nom de la classe : </label>
-                        <input value={planName} onChange={(e) => setPlanName(e.target.value)} type="text" name="name" id="name" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='R50'/><br />
+                        <input value={planName} onChange={(e) => setPlanName(e.target.value)} type="text" name="name" id="name" className='hover:bg-[#707F8C] border-1 border-gray-300 rounded-md mx-3 px-2' maxLength={30} placeholder='R50'/><br />
                       </div>
 
                       <div>
                         <label htmlFor="columns">Nombre de colonnes : </label>
-                        <input value={planY} onChange={(e) => setPlanY(e.target.value)} type="number" name="columns" id="columns" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='7' required/><br />
+                        <input value={planY} onChange={(e) => setPlanY(e.target.value)} type="number" name="columns" id="columns" className='hover:bg-[#707F8C] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='7' required/><br />
                       </div>
 
                       <div>
                         <label htmlFor="rows">Nombre de lignes : </label>
-                        <input value={planX} onChange={(e) => setPlanX(e.target.value)} type="number" name="rows" id="rows" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='5' required/><br />
+                        <input value={planX} onChange={(e) => setPlanX(e.target.value)} type="number" name="rows" id="rows" className='hover:bg-[#707F8C] border-1 border-gray-300 rounded-md mx-3 w-15 px-2' max={100} placeholder='5' required/><br />
                       </div>
 
                       <p>Nombre de place total :
@@ -266,7 +266,7 @@ function RoomPage() {
                     </div>
                   </div>
                   <div className='flex justify-center gap-15 pt-10'>
-                    <button onClick={handleContinue} type="button" disabled={loading} className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Continuer</button>
+                    <button onClick={handleContinue} type="button" disabled={loading} className='hover:bg-[#707F8C] border-1 border-gray-300 rounded-md px-10 py-1 w-75'>Continuer</button>
                   </div>
                 </div>
 
@@ -294,8 +294,8 @@ function RoomPage() {
                   <h1 className='text-2xl'>Êtes vous sur(e) de vouloir supprimer cette salle ?</h1>
                   <h2>Cette action est définitive.</h2>
                   <div className='pt-5 flex gap-5'>
-                    <button type="button" onClick={deleteRoom} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Supprimer</button>
-                    <button type="button" onClick={() => dialogConfirm.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#7A1B1B]'>Annuler</button>
+                    <button type="button" onClick={deleteRoom} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#707F8C]'>Supprimer</button>
+                    <button type="button" onClick={() => dialogConfirm.current?.close()} className='border-2 border-gray-400 px-5 py-2 rounded-md hover:bg-[#707F8C]'>Annuler</button>
                   </div>
                 </div>
                 <img src="/warning.svg" alt="" className='w-25 h-auto invert'/>
@@ -322,7 +322,7 @@ function RoomPage() {
                       <label htmlFor="placement-name">Nom du placement de classe <span className='text-gray-400'>(optionnel)</span> :</label>
                     </th>
                     <td className="align-middle">
-                      <input value={planName} onChange={(e) => setPlanName(e.target.value)} type="text" name="placementName" id="placement-name" className='hover:bg-[#7A1B1B] border-1 border-gray-300 rounded-md w-full px-2' maxLength={30} placeholder='BUT2-R47'/>
+                      <input value={planName} onChange={(e) => setPlanName(e.target.value)} type="text" name="placementName" id="placement-name" className='hover:bg-[#707F8C] border-1 border-gray-300 rounded-md w-full px-2' maxLength={30} placeholder='BUT2-R47'/>
                     </td>
                   </tr>
                   <tr>
@@ -341,7 +341,7 @@ function RoomPage() {
               </table>
             </form>
 
-            <button type="button" className='border-2 border-gray-400 py-2 rounded-md hover:bg-[#7A1B1B] mt-5'>Générer le plan</button>
+            <button type="button" className='border-2 border-gray-400 py-2 rounded-md hover:bg-[#707F8C] mt-5'>Générer le plan</button>
           </div>
         </dialog>
       </div>

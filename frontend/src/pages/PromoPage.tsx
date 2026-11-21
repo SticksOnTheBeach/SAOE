@@ -409,6 +409,7 @@ function PromoPage() {
                             <smart-drop-down-list selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements de ${student.firstName} ${student.lastName}`} className="amenities-dropdown max-w-full">
                               <smart-list-item value="1" selected={student.needsPowerOutlet}>Prise Electrique</smart-list-item>
                               <smart-list-item value="2" selected={student.extraTime ?? false}>PMR</smart-list-item>
+                              <smart-list-item value="3" selected={student.extraTime ?? false}>Tiers-Temps</smart-list-item>
                             </smart-drop-down-list>
                           </td>
                           <td>
@@ -437,6 +438,7 @@ function PromoPage() {
                           <smart-drop-down-list selection-mode="checkBox" placeholder="Aménagements" aria-label={`Aménagements`} className="amenities-dropdown max-w-full">
                             <smart-list-item value="1">PMR</smart-list-item>
                             <smart-list-item value="2">Prise Electrique</smart-list-item>
+                            <smart-list-item value="3">Tiers-Temps</smart-list-item>
                           </smart-drop-down-list>
                         </td>
                         <td>

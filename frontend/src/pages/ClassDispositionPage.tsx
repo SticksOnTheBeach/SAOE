@@ -260,9 +260,9 @@ function ClassDispositionPage() {
     <div className='flex flex-between h-[calc(100vh-130px)] overflow-hidden'>
       <div className='flex-1 grid grid-rows-3 items-start bg-gray-200 p-10 rounded-r-2xl'>
         <div className='flex flex-col items-center justify-self-center self-center text-center'>
-          <div className='flex gap-4'><h1 className='text-4xl'>Configuration des placements</h1></div>
+          <div className='pb-3'><h1 className='text-4xl'>Configuration des placements</h1></div>
           <h2 className='text-xl'>Salle {data.name}</h2>
-          <p className='flex gap-2 text-l cursor-pointer mt-3' onClick={() => dialogRefHelp.current?.showModal()}><img src="/question-circle.svg" alt="" className='w-5 h-auto'/>Help</p>
+          <p className='flex gap-2 text-l cursor-pointer mt-3 hover:font-bold' onClick={() => dialogRefHelp.current?.showModal()}><img src="/question-circle.svg" alt="" className='w-5 h-auto'/>Help</p>
         </div>
         <div className='justify-self-center flex flex-col items-center mt-10'>
           <h2 className='text-center text-xl pb-2'>Type de sélection</h2>
@@ -383,27 +383,36 @@ function ClassDispositionPage() {
       
       
       {/* Aide */}
-      <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-fit rounded-md bg-transparent backdrop:bg-black/50">
-        <div className='bg-gray-200/90 p-5'>
+      <dialog ref={dialogRefHelp} className="m-auto w-3/4 h-fit rounded-xl bg-transparent backdrop:bg-black/50">
+        <div className='bg-gray-200/95 p-5'>
           <div className='flex justify-between'>
             <h1 className='text-3xl text-center pb-5'>Comment utiliser ce configurateur ?</h1>
             <img onClick={() => dialogRefHelp.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto cursor-pointer'/>
           </div>
           <h2 className='pt-5 font-bold text-xl pb-2'>Status des emplacements</h2>
-          <p>Chaquns de ces carrés représente un emplacement. Il peut être : 
-            <br /> - Une place disponible : Une place qui sera attribuée à un élève sans condition particulière
-            <br /> - Une place avec une prise disponible : Une place qui sera attribuée à un élève qui à besoin d'avoir accès à un ordinateur
+          <p className=''>Chaquns de ces carrés représente un emplacement. Il peut être : </p>
+          <p className='pl-5'>  
+            - Une place disponible : Une place qui sera attribuée à un élève sans condition particulière
             <br /> - Une place interdite : Une place qui sera pas attribuée pour x raisons
             <br /> - Un couloir : Une place qui ne peux donc pas être attribuée à un éleve
-            <br /><span className='font-bold'>En cliquant sur une case, vous pourrez changer le status d'un emplacement avec les choix ci-dessus.</span>
+          </p>
+          <p>Si un emplacement est une place disponible, il est possible de lui attribuer des options : </p>
+          <p className='pl-5'>
+             - PMR : Une place prioritaire pour les personnes à mobilité réduites
+            <br /> - Prise électrique : Une place prioritaire pour les personnes nécéssitant une prise électrique (ordinateur, appareil médical, ...)
           </p>
           <h2 className='pt-10 font-bold text-xl pb-2'>Mode de sélection</h2>
-          <p>2 modes de sélection sont possibles grace au switch en haut de la page: 
-            <br /><span className='font-bold'>Selection unique</span>
-            <br />Vous cliquez sur l'emplacement désiré, un menu s'ouvre et vous choisissez le status de cet emplacement.
-            <br /><span className='font-bold '>Selection multiple</span>
-            <br />Vous sélectionnez un ou plusieurs emplacements réprésentés par un contour bleu en cliquant sur l'emplacement désiré. Il est également possible de sélectionner une ligne / colonne d'emplacements en cliquant sur son numéro.
-            <br />Une fois la sélection faite, vous choisissez dans le menu déroulant en haut de la page le status de l'emplacement qui s'appliquera à la sélection.
+          <p className='pb-2'>2 modes de sélection sont possibles grace au switch en haut de la page:</p> 
+          <p>
+            <div className='pb-2'>
+              <span className='font-bold'>Selection unique</span>
+              <br />Vous cliquez sur l'emplacement désiré, un menu s'ouvre et vous choisissez le status de cet emplacement. <br /> Si vous souhaitez ajouter un aménagement, cliquez sur aménagement et une deuxième fenêtre apparaitra avec les aménagements possible. Cliquez sur retour pour revenir au menu d'avant.
+            </div>
+            <div>
+              <span className='font-bold'>Selection multiple</span>
+              <br />Vous sélectionnez un ou plusieurs emplacements réprésentés par un contour bleu en cliquant sur l'emplacement désiré. Il est également possible de sélectionner une ligne / colonne d'emplacements en cliquant sur son numéro.
+              <br />Une fois la sélection faite, vous choisissez dans le menu déroulant en haut de la page le status de l'emplacement qui s'appliquera à la sélection.
+            </div>
           </p>
           <br />
           <h2 className='pt-10 font-bold text-xl pb-2'>Une fois le plan de classe terminé, cliquez sur le bouton "Sauvegarder la salle" en bas de la page pour sauvegarder la salle.</h2>
