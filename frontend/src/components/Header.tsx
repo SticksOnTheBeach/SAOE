@@ -8,12 +8,10 @@ function Header() {
   return (
     <header className="flex justify-between gap-6 bg-[#B51621] px-1 py-0.5 text-white shadow-md">
       <div className="flex justify-between gap-30 px-6 py-4">
-        <div className="flex items-center gap-6">
+        <Link className="flex items-center gap-6" to="/">
           <img src="/logo.png" alt="" className="h-15 w-15" />
-          <h1 className="text-2xl font-bold tracking-tight">
-            <Link to="/">SAOE</Link>
-          </h1>
-        </div>
+          <h1 className="text-2xl font-bold tracking-tight">SAOE</h1>
+        </Link>
         <div className="flex justify-between gap-3 pt-1.5">
           <Link to={"/"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/' ? 'font-bold' : ''}`}>Acceuil</button></Link>
           <Link to={"/Promo"}><button className={`py-3 px-7 rounded-lg hover:bg-[#96121B] ${pathname === '/Promo' ? 'font-bold' : ''}`}>Mes Promos</button></Link>
