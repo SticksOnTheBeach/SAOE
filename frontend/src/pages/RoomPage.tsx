@@ -228,7 +228,7 @@ function RoomPage() {
 
         <form onSubmit={sendRoom} className='flex h-full flex-col'>
           <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
-            <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+            <div className='flex flex-col w-full h-full bg-gray-500 text-white p-5 rounded-3xl border-2 border-gray-700'>
               <div className='grid grid-cols-3 items-center'>
                 <div></div>
                 <h2 className='justify-self-center text-center text-4xl whitespace-nowrap'>{editingId ? 'Modification de la salle' : 'Outil de création de salle'}</h2>
@@ -303,7 +303,7 @@ function RoomPage() {
         </form>
 
         <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[40%] h-[32%] rounded-md bg-transparent backdrop:bg-black/50">
-          <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+          <div className='flex flex-col w-full h-full bg-gray-500 text-white p-5 rounded-3xl border-2 border-gray-700'>
 
             <div className='flex justify-between'>
                 <h1 className='text-2xl'>Création d'un plan de classe en {roomName}</h1>

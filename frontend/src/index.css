@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Remplir la cellule sans laisser les sélections élargir le tableau. */
 smart-drop-down-list.amenities-dropdown {
   width: 100%;
   min-width: 200px;
@@ -10,9 +9,15 @@ smart-drop-down-list.amenities-dropdown {
   min-height: 25px;
   max-height: 25px;
   background: transparent;
+  --smart-surface: var(--color-gray-400);
+  --smart-surface-color: white;
+  --smart-border: rgb(29, 29, 29);
+  --smart-background: #dedede;
+  --smart-ui-state-hover: #9facb2;
+  --smart-ui-state-color-hover: white;
+  --smart-ui-state-border-hover: rgb(29, 29, 29);
 }
 
-/* Aligner les conteneurs internes sur la hauteur fixe du champ. */
 .amenities-dropdown > .smart-container,
 .amenities-dropdown > .smart-container > .smart-content,
 .amenities-dropdown > .smart-container > .smart-content > .smart-buttons-container {
@@ -33,12 +38,10 @@ smart-drop-down-list.amenities-dropdown {
   overflow: hidden;
 }
 
-/* Keep the dropdown button clickable without displaying an arrow. */
 .amenities-dropdown .smart-drop-down-button .smart-drop-down-button-icon {
   display: none;
 }
 
-/* The saved demo does not include the smart-icons font. */
 .amenities-dropdown smart-list-item[display-mode="checkBox"][selected] .smart-input::after {
   content: "";
   width: 6px;

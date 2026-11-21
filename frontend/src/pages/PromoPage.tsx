@@ -312,12 +312,12 @@ function PromoPage() {
     </div>
     
     {/* Dialog modif promo */}
-    <dialog ref={dialogRef} onCancel={(event) => { if (savingPromo.current) event.preventDefault() }} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
-      <fieldset key={formVersion} disabled={loading} className='flex flex-col min-w-0 w-full h-full bg-[#E3E1E1] text-black p-5 rounded-3xl border-2 border-gray-900'>
+    <dialog ref={dialogRef} onCancel={(event) => { if (savingPromo.current) event.preventDefault() }} onClose={resetDialog} className="text-white m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
+      <fieldset key={formVersion} disabled={loading} className='flex flex-col min-w-0 w-full h-full bg-gray-500 p-5 rounded-3xl border-2 border-gray-700'>
         <div className='flex justify-between mb-5'>
           <div className='flex justify-left gap-5'>
             <h2 className='justify-self-center text-center text-4xl whitespace-nowrap'>{editingId ? 'Modification de la promotion' : 'Outil de création de la promotion'}</h2>
-            <input aria-label="Nom de la promotion" value={promoName} onChange={(event) => setPromoName(event.target.value)} className="text-center text-2xl border border-gray-900 rounded-md px-2 w-[20%]" />
+            <input aria-label="Nom de la promotion" value={promoName} onChange={(event) => setPromoName(event.target.value)} className="text-center text-2xl border border-gray-300 rounded-md px-2 w-[20%]" />
           </div>
           <img onClick={() => { if (!savingPromo.current) dialogRef.current?.close() }} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
         </div>
@@ -325,29 +325,29 @@ function PromoPage() {
         {message && <p role="status" className="mb-3">{message}</p>}
         <div className='flex justify-between'>
           <div>
-            <input type="file" id="import-fichier" accept=".csv" aria-label="Importer un CSV" disabled={loading} className='text-sm file:cursor-pointer file:rounded-md file:border file:border-gray-900 file:bg-transparent file:px-10 file:py-1 file:text-white file:mr-3 hover:file:bg-[#FFBDBD] disabled:opacity-50'
+            <input type="file" id="import-fichier" accept=".csv" aria-label="Importer un CSV" disabled={loading} className='text-sm file:cursor-pointer file:rounded-md file:border file:border-gray-900 file:bg-transparent file:px-10 file:py-1 file:text-white file:mr-3 hover:file:bg-[#707F8C] disabled:opacity-50'
               onChange={(event) => {
                 const file = event.target.files?.[0]
                 if (file) console.log('CSV sélectionné :', file)
               }}
             />
           </div>
-          <button type="button" onClick={savePromo} disabled={loading || deletingGroup !== null || deletingStudent} className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md px-10 py-1 w-75'>{loading ? 'Enregistrement…' : 'Enregistrer la promotion'}</button>
+          <button type="button" onClick={savePromo} disabled={loading || deletingGroup !== null || deletingStudent} className='hover:bg-[#707F8C] border-1 border-gray-900 rounded-md px-10 py-1 w-75'>{loading ? 'Enregistrement…' : 'Enregistrer la promotion'}</button>
         </div>
         <div className='flex flex-1 min-h-0 gap-2 mt-2'>
-          <div className='flex-1 bg-[#EDEBEB] border-gray-900 p-2 rounded-md overflow-y-auto'>
+          <div className='flex-1 bg-gray-400 border-gray-900 p-2 rounded-md overflow-y-auto'>
             <h2 className='text-center text-2xl font-bold'>Groupes</h2>
             {groupDeleteError && <p role="alert" className="mt-3 text-red-200">{groupDeleteError}</p>}
             {deletingGroup !== null && <p role="status">Suppression du groupe {deletingGroup}…</p>}
             <div className='flex justify-between gap-0 flex-col mt-10'>
               {groupsOfPromo.map((thisGroup) => (
                 <div className='flex justify-between gap-2 p-2' key={thisGroup}>
-                  <button className='border-1 border-gray-900 hover:bg-[#FFBDBD] rounded-md w-full h-[25px]'>{thisGroup}</button>
+                  <button className='border-1 border-gray-900 hover:bg-[#9FACB2] rounded-md w-full h-[25px]'>{thisGroup}</button>
                   <button type="button" onClick={() => {
                     setGroupToDelete(thisGroup)
                     setGroupDeleteError('')
                     dialogConfirmGroup.current?.showModal()
-                  }} disabled={deletingGroup !== null || deletingStudent} aria-label={`Supprimer le groupe ${thisGroup}`} className='flex items-center justify-center px-2 py-1 h-[25px] border-1 border-gray-900 rounded-md hover:bg-[#FFBDBD] disabled:opacity-50'>
+                  }} disabled={deletingGroup !== null || deletingStudent} aria-label={`Supprimer le groupe ${thisGroup}`} className='flex items-center justify-center px-2 py-1 h-[25px] border-1 border-gray-900 rounded-md hover:bg-[#9FACB2] disabled:opacity-50'>
                     <img className='w-4 h-4 invert-[90%]' src="/trash.svg" alt="" />
                   </button>
                 </div>
@@ -361,16 +361,16 @@ function PromoPage() {
                     aria-label="Nom du nouveau groupe"
                     value={newGroupName}
                     onChange={(event) => setNewGroupName(event.target.value)}
-                    className="hover:bg-[#7A1B1B] border-1 border-gray-900 rounded-md w-full px-2 h-[30px]"
+                    className="border-1 border-gray-900 rounded-md w-full px-2 h-[30px]"
                   />
-                  <button type="button" onClick={validateNewGroup} aria-label="Valider le nouveau groupe" className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md px-2 py-1 w-10 h-[30px]'><img src="/valid.png" alt="" className='invert-[90%]'/></button>
-                  <button type="button" onClick={cancelAddingGroup} aria-label="Annuler l’ajout du groupe" className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md px-2 py-1 w-10 h-[30px]'><img src="/cross.png" alt="" className='invert-[90%]'/></button>
+                  <button type="button" onClick={validateNewGroup} aria-label="Valider le nouveau groupe" className='hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md px-2 py-1 w-10 h-[30px]'><img src="/valid.png" alt="" className='invert-[90%]'/></button>
+                  <button type="button" onClick={cancelAddingGroup} aria-label="Annuler l’ajout du groupe" className='hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md px-2 py-1 w-10 h-[30px]'><img src="/cross.png" alt="" className='invert-[90%]'/></button>
                 </div>
               )}
-              <div className='p-2'><button onClick={() => setAddingGroup(true)} className='flex justify-between hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md w-full px-5 font-bold'><p>+</p><p>Ajouter un groupe</p><p>+</p></button></div>
+              <div className='p-2'><button onClick={() => setAddingGroup(true)} className='flex justify-between hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md w-full px-5 font-bold'><p>+</p><p>Ajouter un groupe</p><p>+</p></button></div>
             </div>
           </div>
-          <div className='flex-4 bg-[#EDEBEB] border-gray-900 p-2 rounded-md overflow-y-auto'>
+          <div className='flex-4 bg-gray-400 border-gray-900 p-2 rounded-md overflow-y-auto'>
             <h2 className='text-center text-2xl font-bold mb-7'>Eleves</h2>
 
             {groupsOfPromo.map((thisGroup) => (
@@ -395,13 +395,13 @@ function PromoPage() {
                       .map((student) => (
                         <tr key={student.id} data-student-row data-student-id={student.id}>
                           <td className='px-2'>
-                            <input type="text" name="firstName" defaultValue={student.firstName} className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
+                            <input type="text" name="firstName" defaultValue={student.firstName} className='hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
                           </td>
                           <td className='px-2'>
-                            <input type="text" name="lastName" defaultValue={student.lastName} className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
+                            <input type="text" name="lastName" defaultValue={student.lastName} className='hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
                           </td>
                           <td className='px-2'>
-                            <select name="groupName" defaultValue={student.groupName} aria-label="Groupe de l’élève" className="border border-gray-900 rounded-md w-full px-2 h-[25px]">
+                            <select name="groupName" defaultValue={student.groupName} aria-label="Groupe de l’élève" className="border border-gray-900 rounded-md w-full px-2 h-[25px] hover:bg-[#9FACB2]">
                               {groupsOfPromo.map((group) => <option key={group} value={group}>{group}</option>)}
                             </select>
                           </td>
@@ -413,7 +413,7 @@ function PromoPage() {
                             </smart-drop-down-list>
                           </td>
                           <td>
-                            <div onClick={() => {setDeletingStudentId(student.id), setError(''), dialogConfirmStudent.current?.showModal()}} className='flex items-center justify-center px-2 py-1 border-1 border-gray-900 rounded-md hover:bg-[#FFBDBD]'>
+                            <div onClick={() => {setDeletingStudentId(student.id), setError(''), dialogConfirmStudent.current?.showModal()}} className='flex items-center justify-center px-2 py-1 border-1 border-gray-900 rounded-md hover:bg-[#9FACB2]'>
                               <img src="/trash.svg" alt="Supprimer un élève" className='invert-[90%]'/>
                             </div>
                           </td>
@@ -422,13 +422,13 @@ function PromoPage() {
                     {studentDrafts.filter((draft) => draft.groupName === thisGroup).map((draft) => (
                       <tr key={draft.id} data-student-row>
                         <td className='px-2'>
-                          <input name="firstName" type="text" className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
+                          <input name="firstName" type="text" className='hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
                         </td>
                         <td className='px-2'>
-                          <input name="lastName" type="text" className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
+                          <input name="lastName" type="text" className='hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md w-full px-2 h-[25px]' />
                         </td>
                         <td className='px-2'>
-                          <select name="groupName" defaultValue={thisGroup} aria-label={`Groupe`} className='hover:bg-[#FFBDBD] border-1 border-gray-900  rounded-md w-full px-3 h-[25px]'>
+                          <select name="groupName" defaultValue={thisGroup} aria-label={`Groupe`} className='hover:bg-[#9FACB2] border-1 border-gray-900  rounded-md w-full px-3 h-[25px]'>
                             {groupsOfPromo.map((thisGroup) => (
                               <option key={thisGroup} value={thisGroup}>{thisGroup}</option>
                             ))}
@@ -442,7 +442,7 @@ function PromoPage() {
                           </smart-drop-down-list>
                         </td>
                         <td>
-                          <div className='flex items-center justify-center px-2 py-1 border-1 border-gray-900 rounded-md hover:bg-[#FFBDBD]'><img src="/trash.svg" onClick={() => setStudentDrafts((drafts) => drafts.filter((item) => item.id !== draft.id))} alt="Supprimer un élève" className='invert-[90%]'/></div>
+                          <div className='flex items-center justify-center px-2 py-1 border-1 border-gray-900 rounded-md hover:bg-[#9FACB2]'><img src="/trash.svg" onClick={() => setStudentDrafts((drafts) => drafts.filter((item) => item.id !== draft.id))} alt="Supprimer un élève" className='invert-[90%]'/></div>
                         </td>
                       </tr>
                     ))}
@@ -451,7 +451,7 @@ function PromoPage() {
                         <button onClick={() => {
                           const draft = { id: crypto.randomUUID(), groupName: thisGroup }
                           setStudentDrafts((drafts) => [...drafts, draft])
-                        }} type="button" className='hover:bg-[#FFBDBD] border-1 border-gray-900 rounded-md w-full cursor-pointer'>+</button>
+                        }} type="button" className='hover:bg-[#9FACB2] border-1 border-gray-900 rounded-md w-full cursor-pointer'>+</button>
                       </td>
                     </tr>
                   </tbody>
@@ -518,7 +518,7 @@ function PromoPage() {
 
     {/* Dialog chargement */}
     <dialog ref={dialogChargement} onClose={resetDialog} className="m-auto w-[20%] h-[15%] rounded-md bg-transparent backdrop:bg-black/50">
-      <div className='flex flex-col justify-center w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
+      <div className='flex flex-col justify-center w-full h-full bg-gray-500 text-white p-5 rounded-3xl border-2 border-gray-700'>
         <div className='flex items-center justify-between'>
           <h1 className='text-4xl'>Chargement</h1>
           <img src="/loading.gif" alt="" className='w-17 h-auto invert mix-blend-screen'/>
