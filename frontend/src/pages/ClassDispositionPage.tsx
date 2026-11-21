@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router'
 interface SeatData {
   row: number
   column: number
-  type: 'AVAILABLE' | 'FORBIDDEN' | 'POWER_OUTLET'
+  type: 'AVAILABLE' | 'FORBIDDEN'
+  equipment: string[]
 }
 
 interface RoomState {
@@ -20,7 +21,7 @@ type CellStatus = 'disponible' | 'interdite' | 'prise' | 'couloir'
 const STATUS_COLORS: Record<CellStatus, string> = {
   disponible: 'bg-[#AAD690]',
   interdite: 'bg-[#A84747]',
-  prise: 'bg-[#EDEB87]',
+  prise: 'bg-[#AAD690]',
   couloir: 'bg-[#FCFCFC] border-2 border-[#F0F0F0]',
 }
 
@@ -38,6 +39,8 @@ function ClassDispositionPage() {
   const [selectedCell, setSelectedCell] = useState<{ row: number; column: number } | null>(null)
   const [selectedCells, setSelectedCells] = useState<string[]>([])
   const [cellStatuses, setCellStatuses] = useState<Record<string, CellStatus>>({})
+  // Le statut et les équipements sont indépendants ; une place peut cumuler PMR et prise.
+  const [cellEquipment, setCellEquipment] = useState<Record<string, string[]>>({})
 
   useEffect(() => {
     if (!data?.id) return
@@ -46,14 +49,17 @@ function ClassDispositionPage() {
       .then((room: RoomState | null) => {
         if (!room?.seats) return
         const initialStatuses: Record<string, CellStatus> = {}
-        const seatMap = new Map<string, SeatData['type']>()
+        const seatMap = new Map<string, SeatData>()
+        const initialEquipment: Record<string, string[]> = {}
         for (const s of room.seats) {
-          seatMap.set(`${s.row}-${s.column}`, s.type)
+          seatMap.set(`${s.row}-${s.column}`, s)
         }
         for (let r = 0; r < Number(data.rows); r++) {
           for (let c = 0; c < Number(data.columns); c++) {
             const key = `${r}-${c}`
-            const seatType = seatMap.get(key)
+            const seat = seatMap.get(key)
+            const seatType = seat?.type
+            initialEquipment[key] = (seat?.equipment ?? []).filter((item) => item === 'PRM' || item === 'POWER_OUTLET')
             if (!seatType) {
               if (r < room.rows && c < room.columns) {
                 initialStatuses[key] = 'couloir'
@@ -62,7 +68,7 @@ function ClassDispositionPage() {
               }
             } else if (seatType === 'FORBIDDEN') {
               initialStatuses[key] = 'interdite'
-            } else if (seatType === 'POWER_OUTLET') {
+            } else if (seat?.equipment?.includes('POWER_OUTLET')) {
               initialStatuses[key] = 'prise'
             } else {
               initialStatuses[key] = 'disponible'
@@ -70,6 +76,7 @@ function ClassDispositionPage() {
           }
         }
         setCellStatuses(initialStatuses)
+        setCellEquipment(initialEquipment)
       })
       .catch((err) => console.error('Erreur chargement salle :', err))
   }, [data?.id, data?.rows, data?.columns])
@@ -95,6 +102,7 @@ function ClassDispositionPage() {
   const handleSelectStatus = (status: CellStatus) => {
     if (selectedCell) {
       const key = `${selectedCell.row}-${selectedCell.column}`
+      setCellEquipment((prev) => ({ ...prev, [key]: [] }))
       setCellStatuses((prev) => ({
         ...prev,
         [key]: status,
@@ -103,7 +111,41 @@ function ClassDispositionPage() {
     dialogChoicePlacementSingle.current?.close()
   }
 
+  function toggleEquipment(equipment: 'PRM' | 'POWER_OUTLET') {
+    if (!selectedCell) return
+    const key = `${selectedCell.row}-${selectedCell.column}`
+    const current = cellEquipment[key] ?? []
+    const next = current.includes(equipment)
+      ? current.filter((item) => item !== equipment)
+      : [...current, equipment]
+    setCellEquipment((prev) => ({ ...prev, [key]: next }))
+    // Choisir un équipement sur un couloir crée une place disponible.
+    setCellStatuses((prev) => ({ ...prev, [key]: next.includes('POWER_OUTLET') ? 'prise' : 'disponible' }))
+  }
+
   const handleMultipleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value
+    if (selectedCells.length === 0) return
+    if (value === 'PRM' || value === 'POWER_OUTLET') {
+      // Ajouter sans doublons ni perte des autres aménagements.
+      setCellEquipment((prev) => {
+        const updated = { ...prev }
+        for (const key of selectedCells) {
+          updated[key] = [...new Set([...(prev[key] ?? []), value])]
+        }
+        return updated
+      })
+      setCellStatuses((prev) => {
+        const updated = { ...prev }
+        for (const key of selectedCells) {
+          updated[key] = value === 'POWER_OUTLET' || prev[key] === 'prise' ? 'prise' : 'disponible'
+        }
+        return updated
+      })
+      // Conserver la sélection pour pouvoir ajouter plusieurs aménagements de suite.
+      e.target.value = ''
+      return
+    }
     const status = e.target.value as CellStatus
     if (!status || selectedCells.length === 0) return
 
@@ -111,6 +153,15 @@ function ClassDispositionPage() {
       const updated = { ...prev }
       for (const key of selectedCells) {
         updated[key] = status
+      }
+      return updated
+    })
+    setCellEquipment((prev) => {
+      const updated = { ...prev }
+      for (const key of selectedCells) {
+        updated[key] = status === 'prise'
+          ? [...new Set([...(prev[key] ?? []), 'POWER_OUTLET'])]
+          : []
       }
       return updated
     })
@@ -161,14 +212,11 @@ function ClassDispositionPage() {
         const status = cellStatuses[`${r}-${c}`] ?? 'disponible'
         if (status === 'couloir') continue
 
-        const type: SeatData['type'] =
-          status === 'interdite'
-            ? 'FORBIDDEN'
-            : status === 'prise'
-              ? 'POWER_OUTLET'
-              : 'AVAILABLE'
-
-        seats.push({ row: r, column: c, type })
+        // Les équipements ne sont plus envoyés comme un type de place.
+        const type: SeatData['type'] = status === 'interdite' ? 'FORBIDDEN' : 'AVAILABLE'
+        const equipment = (cellEquipment[`${r}-${c}`] ?? []).filter((item) => item === 'PRM' || item === 'POWER_OUTLET')
+        if (status === 'prise' && !equipment.includes('POWER_OUTLET')) equipment.push('POWER_OUTLET')
+        seats.push({ row: r, column: c, type, equipment })
       }
     }
 
@@ -239,30 +287,43 @@ function ClassDispositionPage() {
                     ? 'Sélectionnez des cases...'
                     : `Appliquer aux ${selectedCells.length} emplacement(s)`}
                 </option>
-                <option value="disponible">Place disponible</option>
-                <option value="interdite">Place interdite</option>
-                <option value="prise">Place avec une prise</option>
-                <option value="couloir">Couloir</option>
+                <optgroup label="Statut">
+                  <option value="disponible">Place disponible</option>
+                  <option value="interdite">Place interdite</option>
+                  <option value="couloir">Couloir</option>
+                </optgroup>
+                <optgroup label="Ajouter un aménagement">
+                  <option value="POWER_OUTLET">Prise électrique</option>
+                  <option value="PRM">Accès PMR</option>
+                </optgroup>
               </select>
             </div>
           )}
         </div>
-        <div className='flex flex-col gap-3 justify-self-center'>
-          <div className='flex gap-1'>
-            <div className='w-5 h-5 bg-[#AAD690] rounded-md'></div>
-            <p>Place disponible</p>
+        <div className='flex justify-around gap-10 justify-self-center'>
+          <div>
+            <div className='flex gap-1'>
+              <div className='w-5 h-5 bg-[#AAD690] rounded-md'></div>
+              <p>Place disponible</p>
+            </div>
+            <div className='flex gap-1'>
+              <div className='w-5 h-5 bg-[#A84747] rounded-md'></div>
+              <p>Place interdite</p>
+            </div>
+            <div className='flex gap-1'>
+              <div className='w-5 h-5 bg-[#FCFCFC] border-2 border-[#F0F0F0] rounded-md'></div>
+              <p>Couloir</p>
+            </div>
           </div>
-          <div className='flex gap-1'>
-            <div className='w-5 h-5 bg-[#A84747] rounded-md'></div>
-            <p>Place interdite</p>
-          </div>
-          <div className='flex gap-1'>
-            <div className='w-5 h-5 bg-[#EDEB87] rounded-md'></div>
-            <p>Place avec une prise</p>
-          </div>
-          <div className='flex gap-1'>
-            <div className='w-5 h-5 bg-[#FCFCFC] border-2 border-[#F0F0F0] rounded-md'></div>
-            <p>Couloir</p>
+          <div>
+            <div className='flex gap-1'>
+              <img src="/light.svg" alt="" />
+              <p>Prise Electrique</p>
+            </div>
+            <div className='flex gap-1'>
+              <img src="/person-wheelchair.svg" alt="" />
+              <p>Accès PMR</p>
+            </div>
           </div>
         </div>
         <div className='flex justify-center mt-5'>
@@ -298,15 +359,17 @@ function ClassDispositionPage() {
                 {Array.from({ length: Number(data.columns) }, (_, column) => {
                   const key = `${row}-${column}`
                   const status = cellStatuses[key]
-                  const colorClass = status ? STATUS_COLORS[status] : 'bg-gray-200'
+                  // Les équipements sont indiqués par les icônes, sans changer le fond disponible.
+                  const colorClass = STATUS_COLORS[status ?? 'disponible']
                   const isSelected = isMultiple && selectedCells.includes(key)
 
                   return (
                     <div
                       key={key}
                       onClick={(e) => handleCellClick(e, row, column)}
-                      className={`cursor-pointer rounded-md ${colorClass} ${isSelected ? 'ring-3 ring-blue-500' : ''}`}
-                    ></div>
+                      className={`flex flex-col gap-1 p-1 cursor-pointer rounded-md ${colorClass} ${isSelected ? 'ring-3 ring-blue-500' : ''}`}
+                      title={(cellEquipment[key] ?? []).join(', ')}
+                    >{cellEquipment[key]?.includes('PRM') && <span><img src="/person-wheelchair.svg" alt="" /></span>}{cellEquipment[key]?.includes('POWER_OUTLET') && <span><img src="/light.svg" alt="" /></span>}</div>
                   )
                 })}
               </Fragment>
@@ -355,7 +418,7 @@ function ClassDispositionPage() {
             <div className='flex gap-2 bg-[#AAD690] hover:bg-[#BFE3A8] p-2'><img src="/valid.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('disponible')}>Disponible</p></div>
             <div className='flex gap-2 bg-[#A84747] hover:bg-[#B56060] p-2'><img src="/cross.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('interdite')}>Interdite</p></div>
             <div className='flex gap-2 bg-[#EBEBEB] hover:bg-[#F5F5F5] p-2'><img src="/empty.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p onClick={() => handleSelectStatus('couloir')}>Couloir</p></div>
-            <div onClick={() => {dialogChoicePlacementSingle.current?.close(); dialogChoicePlacementSingleArangement.current?.showModal()}} className='flex gap-2 bg-[#8F72B0] hover:bg-[#A08ABA] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p>Aménagement(s)</p></div>
+            <div onClick={() => {dialogChoicePlacementSingle.current?.close(); dialogChoicePlacementSingleArangement.current?.showModal()}} className='flex gap-2 bg-[#8F72B0] hover:bg-[#A08ABA] p-2'><img src="/chair.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p>Aménagement(s)</p></div>
           </div>
         </div>
       </dialog>
@@ -363,15 +426,11 @@ function ClassDispositionPage() {
       {/* Dialog placement dispo */}
       <dialog ref={dialogChoicePlacementSingleArangement} onClick={(e) => { if (e.target === dialogChoicePlacementSingleArangement.current) dialogChoicePlacementSingleArangement.current?.close() }} style={{ left: `${menuPos.x}px`, top: `${menuPos.y}px` }} className="m-0 fixed w-50 h-min rounded-md bg-transparent backdrop:bg-black/50">
         <div className='p-2 bg-gray-600/75'>
-          <div className='flex justify-center gap-1'>
-            <img src="/exit.svg" alt="" className='invert h-7 w-auto' onClick={() => {dialogChoicePlacementSingleArangement.current?.close(); dialogChoicePlacementSingle.current?.showModal()}}/>
-            <p className='text-xl text-gray-100'>Retour</p>
-          </div>
           <p className='text-center pt-2 pb-4 text-xl text-white'>Type d'aménagement</p>
           <div className='rounded-md cursor-pointer'>
-            <div onClick={() => { handleSelectStatus('interdite'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#D4D4D4] hover:bg-[#E3E3E3] p-2'><img src="/stopwatch.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Tier-temps</p></div>
-            <div onClick={() => { handleSelectStatus('prise'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#A1A1A1] hover:bg-[#BFBFBF] p-2'><img src="/light.png" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Prise Nécessaire</p></div>
-            <div onClick={() => { handleSelectStatus('couloir'); dialogChoicePlacementSingleArangement.current?.close() }} className='flex gap-2 bg-[#D4D4D4] hover:bg-[#E3E3E3] p-2'><img src="/person-wheelchair.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Handicap Mobile</p></div>
+            <div onClick={() => toggleEquipment('POWER_OUTLET')} className='flex gap-2 bg-[#A1A1A1] hover:bg-[#BFBFBF] p-2'><img src="/light.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Prise électrique {selectedCell && cellEquipment[`${selectedCell.row}-${selectedCell.column}`]?.includes('POWER_OUTLET') ? '✓' : ''}</p></div>
+            <div onClick={() => toggleEquipment('PRM')} className='flex gap-2 bg-[#D4D4D4] hover:bg-[#E3E3E3] p-2'><img src="/person-wheelchair.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Accès PMR {selectedCell && cellEquipment[`${selectedCell.row}-${selectedCell.column}`]?.includes('PRM') ? '✓' : ''}</p></div>
+            <div onClick={() => {dialogChoicePlacementSingleArangement.current?.close(); dialogChoicePlacementSingle.current?.showModal()}} className='flex justify-center gap-2 bg-[#A1A1A1] hover:bg-[#BFBFBF] p-2'><img src="/exit.svg" className='w-5 h-auto border-0 border-gray-900 rounded-md invert-[25%]' alt="" /><p className='text-gray-700'>Retour</p></div>
           </div>
         </div>
       </dialog>

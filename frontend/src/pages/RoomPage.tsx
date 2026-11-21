@@ -225,7 +225,8 @@ function RoomPage() {
             </div>
           ))}
         </div>
-
+        
+        {/* Dialog creation de la salle */}
         <form onSubmit={sendRoom} className='flex h-full flex-col'>
           <dialog ref={dialogRef} onClose={resetDialog} className="m-auto w-[87.5%] h-[87.5%] rounded-md bg-transparent backdrop:bg-black/50">
             <div className='flex flex-col w-full h-full bg-gray-500 text-white p-5 rounded-3xl border-2 border-gray-700'>
@@ -284,7 +285,8 @@ function RoomPage() {
               </div>
             </div>
           </dialog>
-
+          
+          {/* Dialog confirm delete room */}
           <dialog ref={dialogConfirm} onClose={resetDialog} className="m-auto w-[45%] h-[20%] rounded-md bg-transparent backdrop:bg-black/50">
             <div className='flex flex-col w-full h-full bg-[#691111] text-white p-5 rounded-3xl border-2 border-gray-500'>
               <div className='flex justify-between'>
@@ -301,7 +303,9 @@ function RoomPage() {
             </div>
           </dialog>
         </form>
+        
 
+        {/* Dialog creation du plan de classe */}
         <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[40%] h-[32%] rounded-md bg-transparent backdrop:bg-black/50">
           <div className='flex flex-col w-full h-full bg-gray-500 text-white p-5 rounded-3xl border-2 border-gray-700'>
 
