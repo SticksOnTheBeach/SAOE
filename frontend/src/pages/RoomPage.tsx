@@ -207,19 +207,19 @@ function RoomPage() {
   return (
       <div>
         <h1 className='text-4xl text-center pt-5 text-[#4D4D4D]'>Gestionnaire des salles</h1>
-        <div className="grid grid-cols-5 gap-10 px-20 py-10">
-          <div onClick={openCreate} className="cursor-pointer flex items-center justify-center aspect-[4/3] rounded-4xl bg-gray-200 hover:bg-gray-300">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 2xl:gap-10 px-4 sm:px-6 lg:px-10 2xl:px-20 py-10">
+          <div onClick={openCreate} className="cursor-pointer flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
             <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
           </div>
           {rooms.map((room) => (
-            <div onClick={() => {console.log("Salle ", room.name, " selectionnée"), setRoomName(room.name)}} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] rounded-4xl bg-gray-200 hover:bg-gray-300">
-              <div>
-                <p className="text-4xl text-center text-[#4D4D4D] select-none">{room.name}</p>
-                <p className="text-l text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
-                <div className="flex justify-center mt-6 invisible group-hover:visible gap-2">
-                  <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
-                  <img onClick={(e) => { e.stopPropagation(); setRoomName(room.name); setSelectedPromoId(''); dialogBuildClassPlan.current?.showModal(); setAvailableSeats(room.usableSeatCount)}} src="/grid.svg" alt="Générer un placement" title="Générer un placement" className="w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400"/>
-                  <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-15 h-auto pt-2 bg-gray-400 p-3 rounded-md hover:border-3 hover:border-gray-400'/>
+            <div onClick={() => {console.log("Salle ", room.name, " selectionnée"), setRoomName(room.name)}} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
+              <div className="w-full min-w-0">
+                <p title={room.name} className="text-2xl 2xl:text-4xl truncate text-center text-[#4D4D4D] select-none">{room.name}</p>
+                <p className="text-sm 2xl:text-base truncate text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
+                <div className="flex justify-center mt-3 2xl:mt-6 gap-2 visible md:invisible md:group-hover:visible md:group-focus-within:visible">
+                  <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                  <img onClick={(e) => { e.stopPropagation(); setRoomName(room.name); setSelectedPromoId(''); dialogBuildClassPlan.current?.showModal(); setAvailableSeats(room.usableSeatCount)}} src="/grid.svg" alt="Générer un placement" title="Générer un placement" className="w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                  <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
                 </div>
               </div>
             </div>
