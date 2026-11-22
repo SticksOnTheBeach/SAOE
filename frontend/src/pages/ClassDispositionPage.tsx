@@ -332,13 +332,15 @@ function ClassDispositionPage() {
           </button>
         </div>
       </div>
-      <div className='flex-3 p-5'>
+      {/* Le panneau peut se rétrécir en largeur et répartit sa hauteur entre le bureau et le plan. */}
+      <div className='flex flex-3 flex-col min-w-0 min-h-0 p-5'>
         <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mt-10 mb-10 mb-2 rounded-md'>
           <h2>Bureau</h2>
         </div>
-        <div className='flex-1 min-h-0 w-full overflow-auto flex'>
+        {/* Seule cette zone défile lorsque la grille dépasse la largeur ou la hauteur disponible. */}
+        <div role="region" aria-label="Grille des places" tabIndex={0} className='flex flex-1 min-h-0 w-full overflow-auto'>
           <div
-            className='grid gap-2 m-auto pr-10'
+            className='grid w-max h-max shrink-0 gap-2 m-auto pr-10'
             style={{
               '--cell-size': `clamp(1.5rem, min(4rem, calc((100vh - 340px) / ${Number(data.rows)}), calc((100vw - 160px) / ${Number(data.columns)})), 4rem)`,
               gridTemplateColumns: `2rem repeat(${Number(data.columns)}, var(--cell-size))`,
