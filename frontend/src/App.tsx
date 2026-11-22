@@ -10,7 +10,6 @@ import TestPage from './pages/TestPage'
 import PromoPage from './pages/PromoPage'
 import PromoDetailPage from './pages/PromoDetailPage'
 import ProfilePage from './pages/ProfilePage'
-import SettingsPage from './pages/SettingsPage'
 import PlanTestPage from './pages/PlanTestPage'
 
 function App() {
@@ -26,7 +25,6 @@ function App() {
         <Route path="/Promo" element={<PromoPage />} />
         <Route path="/Promo/:id" element={<PromoDetailPage />} />
         <Route path="/Profile" element={<ProfilePage />} />
-        <Route path="/Settings" element={<SettingsPage />} />
         <Route path="/Test" element={<TestPage />} />
         <Route path="/PlanTest" element={<PlanTestPage />} />
       </Route>

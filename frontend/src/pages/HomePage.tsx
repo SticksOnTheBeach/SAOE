@@ -21,7 +21,6 @@ function HomePage() {
           <p className="text-[#B51621]">Pour en créer une nouvelle:</p>
           <img src="/ajoutsalle.png" alt="Comment créer sa salle part.2"  className="h-auto w-250" />
         </div>
-
       </div>
 
     </div>

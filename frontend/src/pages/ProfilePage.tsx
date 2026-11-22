@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react'
 
 
 function ProfilePage() {
+  const [isOn, setIsOn] = useState(false)
+
+  function setFooterStatus() {
+    if (isOn) {
+      setIsOn(false)
+    } else {
+      setIsOn(true)
+    }
+    console.log(isOn)
+  }
+
   return (
     <div className='bg-gray-200'>
       <div className="relative overflow-hidden">
@@ -131,6 +142,19 @@ function ProfilePage() {
                   </th>
                   <td>
                     <button className='p-2 border-2 border-gray-500 rounded-md hover:bg-gray-100'>Supprimer mon compte</button>
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    <p>Désactiver le footer interractif</p>
+                  </th>
+                  <td className='flex gap-2'>
+                    <h3 className={`pt-1 text-l ${isOn ? 'font-normal' : 'font-bold'}`}>Off</h3>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input checked={!isOn} onChange={() => setFooterStatus()} type="checkbox" className="sr-only peer" />
+                      <div className="group peer bg-white rounded-full duration-300 w-16 h-8 ring-2 after:duration-300 after:bg-gray-400 peer-checked:after:bg-gray-400 after:rounded-full after:absolute after:h-6 after:w-6 after:top-1 after:left-1 after:flex after:justify-center after:items-center peer-checked:after:translate-x-8 peer-hover:after:scale-95"></div>
+                    </label>
+                    <h3 className={`pt-1 text-l ${isOn ? 'font-bold' : 'font-normal'}`} id='multiple'>On</h3>
                   </td>
                 </tr>
                 <tr>
