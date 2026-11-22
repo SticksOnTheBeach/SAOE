@@ -1,0 +1,5 @@
+Backend : 
+
+Frontend : 
+	- ClassDispositionPage : Si le menu simple ne peut pas s'afficher en entier car trop bas, il faut qu'il spawn au dessus de la souris et pas au dessous
+	- RoomPage : Linker definitivement l'interface, le placement et l'affichage du placement
