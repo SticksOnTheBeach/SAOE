@@ -303,8 +303,8 @@ function PromoPage() {
                         <img onClick={(event) => {
                           event.stopPropagation()
                           openPromoDialog(promo)
-                        }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
-                        <img onClick={(e) => { e.stopPropagation(); setDeletingId(promo.id); dialogConfirmPromo.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
+                        }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                        <img onClick={(e) => { e.stopPropagation(); setDeletingId(promo.id); dialogConfirmPromo.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
                     </div>
                 </div>
             </div>

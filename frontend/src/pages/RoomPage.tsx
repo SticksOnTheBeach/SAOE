@@ -30,7 +30,11 @@ function RoomPage() {
   const [planX, setPlanX] = useState('')
   const [planY, setPlanY] = useState("")
   const [planName, setPlanName] = useState('')
-  const [roomName, setRoomName] = useState('')
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
+  const [placementName, setPlacementName] = useState('')
+  const [creatingPlan, setCreatingPlan] = useState(false)
+  const [planError, setPlanError] = useState('')
+  const [planConfirmation, setPlanConfirmation] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const totalPlaces = Number(planX) * Number(planY)
@@ -41,7 +45,50 @@ function RoomPage() {
   const [promosLoading, setPromosLoading] = useState(true)
   const [promosError, setPromosError] = useState('')
   const [selectedCells, setSelectedCells] = useState<string[]>([])
-  const [availableSeats, setAvailableSeats] = useState(0)
+  const availableSeats = selectedRoom?.usableSeatCount ?? 0
+
+  function openPlanDialog(room: Room) {
+    setSelectedRoom(room)
+    setSelectedPromoId('')
+    setPlacementName('')
+    setPlanError('')
+    setPlanConfirmation('')
+    dialogBuildClassPlan.current?.showModal()
+  }
+
+  async function createPlan(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (creatingPlan || !selectedRoom || !selectedPromoId) return
+
+    const promo = promos.find(item => item.id === Number(selectedPromoId))
+    if (!promo) return
+
+    const payload = {
+      name: placementName.trim() || `${promo.name}-${selectedRoom.name}`,
+      roomId: selectedRoom.id,
+      promoId: promo.id,
+    }
+
+    setPlanError('')
+    setCreatingPlan(true)
+    try {
+      const response = await fetch('/api/plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        throw new Error(body?.message || `Création du placement impossible (HTTP ${response.status}).`)
+      }
+      setPlanConfirmation(`Placement « ${payload.name} » créé.`)
+      dialogBuildClassPlan.current?.close()
+    } catch (err) {
+      setPlanError(err instanceof Error ? err.message : 'Création du placement impossible.')
+    } finally { 
+      setCreatingPlan(false)
+    }
+  }
 
   async function fetchRooms() {
     try {
@@ -120,7 +167,6 @@ function RoomPage() {
     const controller = new AbortController()
     async function fetchPromos() {
       try {
-        // Deux appels en parallèle, plutôt qu'un appel par promotion.
         const [res, studentsRes] = await Promise.all([
           fetch('/api/promos', { signal: controller.signal }),
           fetch('/api/students', { signal: controller.signal }),
@@ -129,7 +175,6 @@ function RoomPage() {
         if (!studentsRes.ok) throw new Error(`Chargement des effectifs impossible (HTTP ${studentsRes.status}).`)
         const data: Promo[] = await res.json()
         const students: StudentPromo[] = await studentsRes.json()
-        // Initialiser aussi les promotions vides à zéro. Les élèves sans promo sont ignorés.
         const counts: Record<number, number> = {}
         for (const promo of data) counts[promo.id] = 0
         for (const student of students) {
@@ -207,19 +252,20 @@ function RoomPage() {
   return (
       <div>
         <h1 className='text-4xl text-center pt-5 text-[#4D4D4D]'>Gestionnaire des salles</h1>
+        {planConfirmation && <p role="status" className="text-center">{planConfirmation}</p>}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 2xl:gap-10 px-4 sm:px-6 lg:px-10 2xl:px-20 py-10">
           <div onClick={openCreate} className="cursor-pointer flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
             <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
           </div>
           {rooms.map((room) => (
-            <div onClick={() => {console.log("Salle ", room.name, " selectionnée"), setRoomName(room.name)}} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
+            <div onClick={() => {console.log("Salle ", room.name, " selectionnée"); setSelectedRoom(room)}} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
               <div className="w-full min-w-0">
                 <p title={room.name} className="text-2xl 2xl:text-4xl truncate text-center text-[#4D4D4D] select-none">{room.name}</p>
                 <p className="text-sm 2xl:text-base truncate text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
                 <div className="flex justify-center mt-3 2xl:mt-6 gap-2 visible md:invisible md:group-hover:visible md:group-focus-within:visible">
-                  <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
-                  <img onClick={(e) => { e.stopPropagation(); setRoomName(room.name); setSelectedPromoId(''); dialogBuildClassPlan.current?.showModal(); setAvailableSeats(room.usableSeatCount)}} src="/grid.svg" alt="Générer un placement" title="Générer un placement" className="w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
-                  <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-10 h-10 2xl:w-12 2xl:h-12 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
+                  <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                  <img onClick={(e) => { e.stopPropagation(); openPlanDialog(room) }} src="/grid.svg" alt="Générer un placement" title="Générer un placement" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                  <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
                 </div>
               </div>
             </div>
@@ -306,15 +352,15 @@ function RoomPage() {
         
 
         {/* Dialog creation du plan de classe */}
-        <dialog ref={dialogBuildClassPlan} onClose={resetDialog} className="m-auto w-[40%] h-[32%] rounded-md bg-transparent backdrop:bg-black/50">
+        <dialog ref={dialogBuildClassPlan} onCancel={event => { if (creatingPlan) event.preventDefault() }} className="m-auto w-[40%] rounded-md bg-transparent backdrop:bg-black/50">
           <div className='flex flex-col w-full h-full bg-gray-500 text-white p-5 rounded-3xl border-2 border-gray-700'>
 
             <div className='flex justify-between'>
-                <h1 className='text-2xl'>Création d'un plan de classe en {roomName}</h1>
-                <img onClick={() => dialogBuildClassPlan.current?.close()} src="/x-circle-fill.svg" alt="" className='justify-self-end block w-7 h-auto invert cursor-pointer'/>
+                <h1 className='text-2xl'>Création d'un plan de classe en {selectedRoom?.name}</h1>
+                <button type="button" disabled={creatingPlan} onClick={() => dialogBuildClassPlan.current?.close()} aria-label="Fermer"><img src="/x-circle-fill.svg" alt="" className='block w-7 h-auto invert'/></button>
             </div>
             
-            <form action="">
+            <form onSubmit={createPlan} className="flex flex-col">
               <table className="w-full mt-15 border-separate border-spacing-y-3">
                 <tbody>
                   <tr>
@@ -322,7 +368,7 @@ function RoomPage() {
                       <label htmlFor="placement-name">Nom du placement de classe <span className='text-gray-400'>(optionnel)</span> :</label>
                     </th>
                     <td className="align-middle">
-                      <input value={planName} onChange={(e) => setPlanName(e.target.value)} type="text" name="placementName" id="placement-name" className='hover:bg-[#707F8C] border-1 border-gray-300 rounded-md w-full px-2' maxLength={30} placeholder='BUT2-R47'/>
+                      <input value={placementName} onChange={(e) => setPlacementName(e.target.value)} disabled={creatingPlan} type="text" name="placementName" id="placement-name" className='hover:bg-[#707F8C] border-1 border-gray-300 rounded-md w-full px-2' maxLength={30} placeholder='BUT2-R47'/>
                     </td>
                   </tr>
                   <tr>
@@ -330,7 +376,7 @@ function RoomPage() {
                       <label htmlFor="placement-promo">Promotion à placer :</label>
                     </th>
                     <td className="align-middle">
-                      <select id="placement-promo" name="promoId" value={selectedPromoId} onChange={(event) => setSelectedPromoId(event.target.value)} disabled={promosLoading || promos.length === 0} className="border border-gray-300 rounded-md w-full px-2 h-[25px]">
+                      <select id="placement-promo" name="promoId" required value={selectedPromoId} onChange={(event) => setSelectedPromoId(event.target.value)} disabled={creatingPlan || promosLoading || promos.length === 0} className="border border-gray-300 rounded-md w-full px-2 h-[25px]">
                         <option value="" disabled className='bg-[#791111]'>{promosLoading ? 'Chargement…' : promos.length === 0 ? 'Aucune promotion disponible' : 'Choisir une promotion'}</option>
                         {promos.map((promo) => <option key={promo.id} value={promo.id} className='bg-[#791111]' disabled={studentCounts[promo.id] > availableSeats || studentCounts[promo.id] === 0}>{promo.name} ({studentCounts[promo.id]} étudiants)</option>)}
                       </select>
@@ -339,9 +385,9 @@ function RoomPage() {
                   </tr>
                 </tbody>
               </table>
+              {planError && <p role="alert" className="text-red-200">{planError}</p>}
+              <button type="submit" disabled={creatingPlan || !selectedPromoId} className='border-2 border-gray-400 py-2 rounded-md hover:bg-[#707F8C] mt-5 disabled:opacity-50'>{creatingPlan ? 'Génération en cours…' : 'Générer le plan'}</button>
             </form>
-
-            <button type="button" className='border-2 border-gray-400 py-2 rounded-md hover:bg-[#707F8C] mt-5'>Générer le plan</button>
           </div>
         </dialog>
       </div>
