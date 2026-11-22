@@ -1,6 +1,10 @@
 package fr.iutinfo.seatingplan.plan;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.ElementCollection;
 
 import fr.iutinfo.seatingplan.promo.Promo;
 import jakarta.persistence.Entity;
@@ -29,7 +33,10 @@ public class SavedPlan {
 	private Promo promo;
 
 
-	// private ResourceType resource
+	private String roomId;
+
+	@ElementCollection
+	private List<SeatAssignment> assignments = new ArrayList<>();
 
 	protected SavedPlan() {}
 
@@ -40,6 +47,12 @@ public class SavedPlan {
 		this.softScore = softScore;
 		this.feasible = feasible;
 		this.createdAt = Instant.now();
+	}
+
+	public SavedPlan(String name, Promo promo, String roomId, List<SeatAssignment> assignments) {
+		this(name, promo, 0, 0, true);
+		this.roomId = roomId;
+		this.assignments.addAll(assignments);
 	}
 
 	public String getUuid() { return this.uuid; }

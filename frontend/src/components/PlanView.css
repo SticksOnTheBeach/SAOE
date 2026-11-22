@@ -1,0 +1,55 @@
+.placement-grid {
+  border-collapse: collapse;
+  text-align: center;
+}
+.placement-grid :is(th, td) {
+  border: 1px solid #9ca3af;
+  padding: .5rem;
+}
+.placement-grid td {
+  min-width: 7rem;
+  overflow-wrap: anywhere;
+}
+.placement-grid th, .placement-grid .aisle {
+  background: #e5e7eb;
+}
+/* La copie destinée au papier reste masquée lors de la consultation à l'écran. */
+.placement-print {
+  display: none;
+}
+/* La règle « page: placement » ci-dessous applique ce format au plan imprimé. */
+@page placement {
+  size: A4 landscape;
+  margin: 10mm;
+}
+@media print {
+  /* Si le portail du plan est présent, masquer les autres enfants du body, dont la navigation. */
+  body:has(> .placement-print) > :not(.placement-print) {
+    display: none !important;
+  }
+  .placement-print {
+    display: block;
+    page: placement;
+    color: black;
+  }
+  /* Chaque bande de colonnes après la première commence sur une nouvelle page. */
+  .placement-print section + section {
+    break-before: page;
+  }
+  .placement-print table {
+    margin-top: 4mm;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 10pt;
+  }
+  /* Demander au navigateur de garder toute une rangée sur la même page. */
+  .placement-print tr {
+    break-inside: avoid;
+  }
+  .placement-print th:first-child {
+    width: 12mm;
+  }
+  .placement-print td {
+    min-width: 0;
+  }
+}

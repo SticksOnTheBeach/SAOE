@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import fr.iutinfo.seatingplan.plan.SavedPlanRepository;
 import fr.iutinfo.seatingplan.student.Student;
 import fr.iutinfo.seatingplan.student.StudentRepository;
 import jakarta.validation.Valid;
@@ -29,11 +30,13 @@ public class PromoController {
 	
 	private PromoRepository promoRepository;
 	private StudentRepository studentRepository;
+	private final SavedPlanRepository plans;
 	
 	public record PromoCreateRequest(@NotBlank @Size(max = 50) String name) {}
 
 	
-	public PromoController(PromoRepository promoRepository, StudentRepository studentRepository) {
+	public PromoController(PromoRepository promoRepository, StudentRepository studentRepository, SavedPlanRepository plans) {
+		this.plans = plans;
 		this.promoRepository = promoRepository;
 		this.studentRepository = studentRepository;
 	}
@@ -84,6 +87,7 @@ public class PromoController {
 	        }
 	        studentRepository.deleteByPromoId(id);
 	    }
+	    plans.detachPromo(id);
 	    promoRepository.deleteById(id);
 	}
 	

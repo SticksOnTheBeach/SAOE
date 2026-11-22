@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import PlanView, { type CreatedPlan, type DisplayPlan, type PlanSeat } from '../components/PlanView'
+import { useNavigate } from 'react-router'
 
 interface Room {
   id: string
   name: string
   rows: number
   columns: number
+  seats: PlanSeat[]
   usableSeatCount: number
 }
 
@@ -15,6 +17,9 @@ interface Promo {
 }
 
 interface StudentPromo {
+  id: string
+  firstName: string
+  lastName: string
   promo: Promo | null
 }
 
@@ -34,7 +39,11 @@ function RoomPage() {
   const [placementName, setPlacementName] = useState('')
   const [creatingPlan, setCreatingPlan] = useState(false)
   const [planError, setPlanError] = useState('')
-  const [planConfirmation, setPlanConfirmation] = useState('')
+  // plan garde le dernier placement en mémoire ; showPlan indique quelle vue afficher.
+  // On peut ainsi revenir aux salles puis revoir le même placement sans le générer à nouveau.
+  const [plan, setPlan] = useState<DisplayPlan | null>(null)
+  const [showPlan, setShowPlan] = useState(false)
+  const [studentNames, setStudentNames] = useState(new Map<string, string>())
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const totalPlaces = Number(planX) * Number(planY)
@@ -52,7 +61,6 @@ function RoomPage() {
     setSelectedPromoId('')
     setPlacementName('')
     setPlanError('')
-    setPlanConfirmation('')
     dialogBuildClassPlan.current?.showModal()
   }
 
@@ -81,7 +89,10 @@ function RoomPage() {
         const body = await response.json().catch(() => null)
         throw new Error(body?.message || `Création du placement impossible (HTTP ${response.status}).`)
       }
-      setPlanConfirmation(`Placement « ${payload.name} » créé.`)
+      // Le POST renvoie les affectations. La salle sélectionnée fournit les dimensions et les sièges de la grille.
+      const created: CreatedPlan = await response.json()
+      setPlan({ ...created, room: selectedRoom, promoName: promo.name })
+      setShowPlan(true)
       dialogBuildClassPlan.current?.close()
     } catch (err) {
       setPlanError(err instanceof Error ? err.message : 'Création du placement impossible.')
@@ -183,6 +194,8 @@ function RoomPage() {
             counts[promoId] = (counts[promoId] ?? 0) + 1
           }
         }
+        // Chaque affectation contient un studentId. Cette table permet de retrouver le nom à afficher à cette place.
+        setStudentNames(new Map(students.map(s => [s.id, `${s.firstName} ${s.lastName}`.trim()])))
         setStudentCounts(counts)
         setPromos(data)
       } catch (err) {
@@ -249,10 +262,16 @@ function RoomPage() {
     })
   }
 
+  // Ce return affiche le plan dans la route /Room. « Retour aux salles » remet showPlan à false
+  // et React reprend alors le rendu de la liste des salles ci-dessous.
+  if (showPlan && plan) {
+    return <PlanView plan={plan} names={studentNames} onBack={() => setShowPlan(false)} />
+  }
+
   return (
       <div>
         <h1 className='text-4xl text-center pt-5 text-[#4D4D4D]'>Gestionnaire des salles</h1>
-        {planConfirmation && <p role="status" className="text-center">{planConfirmation}</p>}
+        {plan && <div className="text-center"><button className="underline" onClick={() => setShowPlan(true)}>Revoir le placement « {plan.name} »</button></div>}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 2xl:gap-10 px-4 sm:px-6 lg:px-10 2xl:px-20 py-10">
           <div onClick={openCreate} className="cursor-pointer flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
             <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
