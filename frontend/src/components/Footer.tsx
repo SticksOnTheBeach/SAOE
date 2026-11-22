@@ -8,7 +8,7 @@ export const FooterBandeau: React.FC = () => {
       </p>
       <div className="flex h-full items-center justify-between gap-5 px-[5%]">
         <div className="min-w-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-[:focus-visible]:opacity-100 motion-reduce:transition-none">
-          <h2 className="text-center text-2xl font-bold">Développeurs</h2>
+          <h2 className="text-center text-2xl font-bold">Dévoleppé avec <img src="/heart.png" alt="" className='invert inline-block h-6 w-auto'/> par :</h2>
           <div className="mt-4 flex gap-5 overflow-x-auto">
             <div className="flex flex-col items-center text-center">
               <p><span className='font-bold'>Mael Retault :</span> <br />mael.retault@etu.unilim.fr</p>
