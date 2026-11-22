@@ -143,7 +143,6 @@ function ClassDispositionPage() {
         }
         return updated
       })
-      // Conserver la sélection pour pouvoir ajouter plusieurs aménagements de suite.
       e.target.value = ''
       return
     }

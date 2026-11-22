@@ -32,9 +32,6 @@ function Header() {
               <li>
                 <Link to="/Profile" className="block px-4 py-2 hover:bg-gray-100">Mon Profil</Link>
               </li>
-              <li>
-                <Link to="/Settings" className="block px-4 py-2 hover:bg-gray-100">Paramètres</Link>
-              </li>
               <hr className="border-gray-200" />
               <li>
                 <button className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600">

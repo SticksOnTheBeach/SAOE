@@ -316,16 +316,18 @@ function RoomPage() {
                   </div>
                 </div>
 
-                <div className='flex-2 border-1 border-gray-300 rounded-md pt-3 overflow-auto'>
-                  <h2 className='text-center text-2xl'>Aperçu du plan de classe <br /><span className='text-lg'>(les modifications se font à l'étape suivante)</span></h2>
-                  <div className='flex flex-col gap-2 p-10 w-max mx-auto'>
-                    {Array.from({ length: Math.max(0, Number(planX)) }, (_, column) => (
+                <div className='flex flex-2 flex-col min-w-0 min-h-0 border-1 border-gray-300 rounded-md pt-3'>
+                  <h2 className='shrink-0 text-center text-2xl'>Aperçu du plan de classe <br /><span className='text-lg'>(les modifications se font à l'étape suivante)</span></h2>
+                  <div className='flex-1 min-h-0 overflow-auto'>
+                    <div className='flex flex-col gap-2 p-10 w-max mx-auto'>
+                      {Array.from({ length: Math.max(0, Number(planX)) }, (_, column) => (
                         <div key={column} className='flex gap-2'>
                           {Array.from({ length: Math.max(0, Number(planY)) }, (_, row) => (
                               <div key={row} className="shrink-0 w-10 h-10 group flex items-center justify-center rounded-md bg-gray-200"></div>
                           ))}
                         </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
