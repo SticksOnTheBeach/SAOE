@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
+import { intToExcelCol } from 'excel-column-name'
 
 interface SeatData {
   row: number
@@ -258,6 +259,7 @@ function ClassDispositionPage() {
 
   return (
     <div className='flex flex-between h-[calc(100vh-130px)] overflow-hidden'>
+      {/* Partie gauche : Parametres */}
       <div className='flex-1 grid grid-rows-3 items-start bg-gray-200 p-10 rounded-r-2xl'>
         <div className='flex flex-col items-center justify-self-center self-center text-center'>
           <div className='pb-3'><h1 className='text-4xl'>Configuration des placements</h1></div>
@@ -332,12 +334,11 @@ function ClassDispositionPage() {
           </button>
         </div>
       </div>
-      {/* Le panneau peut se rétrécir en largeur et répartit sa hauteur entre le bureau et le plan. */}
+      {/* Partie droite : Plan */}
       <div className='flex flex-3 flex-col min-w-0 min-h-0 p-5'>
-        <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mt-10 mb-10 mb-2 rounded-md'>
+        <div className='bg-gray-100 flex justify-center p-3 mx-[45%] mb-10 mb-2 rounded-md'>
           <h2>Bureau</h2>
         </div>
-        {/* Seule cette zone défile lorsque la grille dépasse la largeur ou la hauteur disponible. */}
         <div role="region" aria-label="Grille des places" tabIndex={0} className='flex flex-1 min-h-0 w-full overflow-auto'>
           <div
             className='grid w-max h-max shrink-0 gap-2 m-auto pr-10'
@@ -350,7 +351,7 @@ function ClassDispositionPage() {
             <div />
             {Array.from({ length: Number(data.columns) }, (_, column) => (
               <p key={`col-${column}`} onClick={() => handleColumnClick(column)} className='cursor-pointer select-none hover:font-bold hover:bg-gray-200 rounded-md flex items-center justify-center'>
-                {column + 1}
+                {intToExcelCol(column + 1)}
               </p>
             ))}
             {Array.from({ length: Number(data.rows) }, (_, row) => (
