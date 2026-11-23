@@ -295,7 +295,7 @@ function RoomPage() {
             <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
           </div>
           {rooms.map((room) => (
-            <div onClick={() => {console.log("Salle ", room.name, " selectionnée"); setSelectedRoom(room)}} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
+            <div onClick={() => {setSelectedRoom(room)}} key={room.id} className="cursor-pointer group flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
               <div className="w-full min-w-0">
                 <p title={room.name} className="text-2xl 2xl:text-4xl truncate text-center text-[#4D4D4D] select-none">{room.name}</p>
                 <p className="text-sm 2xl:text-base truncate text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>

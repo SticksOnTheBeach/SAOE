@@ -11,14 +11,15 @@ import PromoPage from './pages/PromoPage'
 import PromoDetailPage from './pages/PromoDetailPage'
 import ProfilePage from './pages/ProfilePage'
 import PlanTestPage from './pages/PlanTestPage'
+import PlacementPage from './pages/PlacementPage'
 
 function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
+        <Route index element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route index element={<HomePage />} />
         <Route path="/Room" element={<RoomPage />} />
         <Route path="/ClassDisposition" element={<ClassDispositionPage />} />
         <Route path="/History" element={<HistoryPage />} />
@@ -27,6 +28,7 @@ function App() {
         <Route path="/Profile" element={<ProfilePage />} />
         <Route path="/Test" element={<TestPage />} />
         <Route path="/PlanTest" element={<PlanTestPage />} />
+        <Route path="/PlacementPage" element={<PlacementPage />} />
       </Route>
     </Routes>
   )
