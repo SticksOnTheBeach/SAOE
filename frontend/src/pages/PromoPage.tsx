@@ -279,7 +279,7 @@ function PromoPage() {
       setStudentDrafts([])
       setMessage('Promotion enregistrée.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l’enregistrement.')
+      setError(err instanceof Error ? err.message : 'Erreur lors de la sauvegarde.')
     } finally {
       savingPromo.current = false
       setLoading(false)
@@ -336,7 +336,7 @@ function PromoPage() {
                           event.stopPropagation()
                           openPromoDialog(promo)
                         }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
-                        <img onClick={(e) => { e.stopPropagation(); /* void duplicatePromo(promo) */ }} src="/duplicate.svg" alt={`Dupliquer la salle ${room.name}`} title="Dupliquer la salle" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                        <img onClick={(e) => { e.stopPropagation(); /* void duplicatePromo(promo) */ }} src="/duplicate.svg" alt={`Dupliquer la salle ${promo.name}`} title="Dupliquer la salle" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
                         <img onClick={(e) => { e.stopPropagation(); setDeletingId(promo.id); dialogConfirmPromo.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
                     </div>
                 </div>

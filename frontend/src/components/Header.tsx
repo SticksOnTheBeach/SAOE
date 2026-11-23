@@ -20,13 +20,15 @@ function Header() {
         </div>
       </div>
 
-      <div className="flex justify-center relative h-18 w-30 pt-4 cursor-pointer" onClick={() => setIsMenuOpen((open) => !open)}>
-        <img src="/mael.jpg" alt="" className="size-14 shrink-0 rounded-full object-cover" />
-        <img
-          src={isMenuOpen ? '/pp_closed.png' : '/pp_extended.png'}
-          alt="Menu Utilisateur"
-          className="h-full min-w-0 scale-125 flex-1 object-contain object-left pr-5 pl-4 origin-right"
-        />
+      <div className="relative h-18 w-30 cursor-pointer pt-4" onClick={() => setIsMenuOpen((open) => !open)}>
+        <div className='flex justify-center hover:invert-[10%]'>
+          <img src="/mael.jpg" alt="" className="size-14 shrink-0 rounded-full object-cover" />
+          <img
+            src={isMenuOpen ? '/pp_closed.png' : '/pp_extended.png'}
+            alt="Menu Utilisateur"
+            className="h-full min-w-0 scale-125 flex-1 object-contain object-left pr-5 pl-4 pt-1 origin-right"
+          />
+        </div>
         {isMenuOpen && (
           <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50 text-black">
             <ul className="py-1">
