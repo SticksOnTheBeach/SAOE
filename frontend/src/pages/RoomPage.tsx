@@ -7,6 +7,12 @@ interface Room {
   rows: number
   columns: number
   usableSeatCount: number
+  seats: {
+    row: number
+    column: number
+    type: 'AVAILABLE' | 'FORBIDDEN'
+    equipment: ('PRM' | 'POWER_OUTLET')[]
+  }[]
 }
 
 interface Promo {
@@ -39,6 +45,8 @@ function RoomPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const totalPlaces = Number(planX) * Number(planY)
   const [rooms, setRooms] = useState<Room[]>([])
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
+  const [duplicateError, setDuplicateError] = useState('')
   const [promos, setPromos] = useState<Promo[]>([])
   const [studentCounts, setStudentCounts] = useState<Record<number, number>>({})
   const [selectedPromoId, setSelectedPromoId] = useState('')
@@ -99,6 +107,35 @@ function RoomPage() {
       }
     } catch (err) {
       console.error('Erreur lors du chargement des salles : ', err)
+    }
+  }
+
+  async function duplicateRoom(room: Room) {
+    if (duplicatingId !== null) return
+    setDuplicatingId(room.id)
+    setDuplicateError('')
+    try {
+      const response = await fetch('/api/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${room.name} (copie)`,
+          rows: room.rows,
+          columns: room.columns,
+          // Les cases absentes restent des couloirs. Le serveur attribue de nouveaux identifiants.
+          seats: room.seats.map(({ row, column, type, equipment }) => ({ row, column, type, equipment })),
+        }),
+      })
+      if (!response.ok) {
+        const detail = await response.text()
+        throw new Error(detail || `Duplication impossible (HTTP ${response.status}).`)
+      }
+      const copy: Room = await response.json()
+      setRooms(current => [...current, copy])
+    } catch (err) {
+      setDuplicateError(err instanceof Error ? err.message : 'Duplication impossible.')
+    } finally {
+      setDuplicatingId(null)
     }
   }
 
@@ -253,6 +290,7 @@ function RoomPage() {
       <div>
         <h1 className='text-4xl text-center pt-5 text-[#4D4D4D]'>Gestionnaire des salles</h1>
         {planConfirmation && <p role="status" className="text-center">{planConfirmation}</p>}
+        {duplicateError && <p role="alert" className="text-center text-red-700">{duplicateError}</p>}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6 2xl:gap-10 px-4 sm:px-6 lg:px-10 2xl:px-20 py-10">
           <div onClick={openCreate} className="cursor-pointer flex items-center justify-center aspect-[4/3] min-w-0 overflow-hidden p-4 rounded-4xl bg-gray-200 hover:bg-gray-300">
             <p className="text-8xl text-center text-[#4D4D4D] select-none">+</p>
@@ -264,7 +302,9 @@ function RoomPage() {
                 <p className="text-sm 2xl:text-base truncate text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
                 <div className="flex justify-center mt-3 2xl:mt-6 gap-2 visible md:invisible md:group-hover:visible md:group-focus-within:visible">
                   <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
-                  <img onClick={(e) => { e.stopPropagation(); openPlanDialog(room) }} src="/grid.svg" alt="Générer un placement" title="Générer un placement" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                  <button type="button" disabled={duplicatingId !== null} onClick={(e) => { e.stopPropagation(); void duplicateRoom(room) }} aria-label={`Dupliquer la salle ${room.name}`} title="Dupliquer la salle" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500 disabled:opacity-50">
+                    <img src="/duplicate.svg" alt="" className="w-full h-full object-contain" />
+                  </button>
                   <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
                 </div>
               </div>
