@@ -46,6 +46,8 @@ function PromoPage() {
   const [promoName, setPromoName] = useState('')
   const [formVersion, setFormVersion] = useState(0)
   const savingPromo = useRef(false)
+  const [duplicatingId, setDuplicatingId] = useState<number | null>(null)
+  const [duplicateError, setDuplicateError] = useState<string | null>(null)
 
   function cancelAddingGroup() {
     setNewGroupName('')
@@ -149,55 +151,6 @@ function PromoPage() {
     fetchStudentCounts()
   }, [])
 
-  async function savePromo() {
-    if (savingPromo.current || deletingGroup !== null || deletingStudent) return
-    savingPromo.current = true
-    setLoading(true)
-    setError('')
-    setMessage('')
-    try {
-      if (!promoName.trim()) throw new Error('Renseignez le nom de la promotion.')
-      if (addingGroup && newGroupName.trim()) throw new Error('Validez le nouveau groupe avant de sauvegarder.')
-
-      const rows = Array.from(dialogRef.current!.querySelectorAll<HTMLTableRowElement>('tr[data-student-row]'))
-      const editedStudents = rows.map((row) => {
-        const input = (name: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${name}"]`)!.value.trim()
-        const menu = row.querySelector('smart-drop-down-list') as HTMLElement & { selectedValues?: string[] }
-        const amenities = menu.selectedValues ?? []
-        const firstName = input('firstName')
-        const lastName = input('lastName')
-        if (!firstName || !lastName) throw new Error('Chaque ligne doit avoir un prénom et un nom. Supprimez les lignes vides inutilisées.')
-        return {
-          id: row.dataset.studentId ? Number(row.dataset.studentId) : null,
-          firstName, lastName, groupName: input('groupName'),
-          needsPowerOutlet: amenities.includes('2'),
-          extraTime: amenities.includes('1'),
-          otherAccommodation: amenities.includes('3'),
-        }
-      })
-      const res = await fetch(selectedPromo ? `/api/promos/${selectedPromo.id}` : '/api/promos', {
-        method: selectedPromo ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: promoName.trim(), groups: groupsOfPromo, students: editedStudents }),
-      })
-      const body = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(body?.message ?? `Enregistrement impossible (HTTP ${res.status}).`)
-      const saved = body as { promo: Promo; students: Student[] }
-      setSelectedPromo(saved.promo)
-      setEditingId(true)
-      setPromos((current) => [...current.filter((promo) => promo.id !== saved.promo.id), saved.promo].sort((a, b) => a.id - b.id))
-      setStudents((current) => [...current.filter((student) => student.promo?.id !== saved.promo.id), ...saved.students])
-      setStudentCounts((counts) => ({ ...counts, [saved.promo.id]: saved.students.length }))
-      setStudentDrafts([])
-      setMessage('Promotion enregistrée.')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l’enregistrement.')
-    } finally {
-      savingPromo.current = false
-      setLoading(false)
-    }
-  }
-
   async function deleteStudents() {
     if (deletingStudentId === null || deletingStudent) return
     const student = students.find((item) => item.id === deletingStudentId)
@@ -284,7 +237,86 @@ function PromoPage() {
     }
   }
 
+  async function savePromo() {
+    if (savingPromo.current || deletingGroup !== null || deletingStudent) return
+    savingPromo.current = true
+    setLoading(true)
+    setError('')
+    setMessage('')
+    try {
+      if (!promoName.trim()) throw new Error('Renseignez le nom de la promotion.')
+      if (addingGroup && newGroupName.trim()) throw new Error('Validez le nouveau groupe avant de sauvegarder.')
 
+      const rows = Array.from(dialogRef.current!.querySelectorAll<HTMLTableRowElement>('tr[data-student-row]'))
+      const editedStudents = rows.map((row) => {
+        const input = (name: string) => row.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${name}"]`)!.value.trim()
+        const menu = row.querySelector('smart-drop-down-list') as HTMLElement & { selectedValues?: string[] }
+        const amenities = menu.selectedValues ?? []
+        const firstName = input('firstName')
+        const lastName = input('lastName')
+        if (!firstName || !lastName) throw new Error('Chaque ligne doit avoir un prénom et un nom. Supprimez les lignes vides inutilisées.')
+        return {
+          id: row.dataset.studentId ? Number(row.dataset.studentId) : null,
+          firstName, lastName, groupName: input('groupName'),
+          needsPowerOutlet: amenities.includes('2'),
+          extraTime: amenities.includes('1'),
+          otherAccommodation: amenities.includes('3'),
+        }
+      })
+      const res = await fetch(selectedPromo ? `/api/promos/${selectedPromo.id}` : '/api/promos', {
+        method: selectedPromo ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: promoName.trim(), groups: groupsOfPromo, students: editedStudents }),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(body?.message ?? `Enregistrement impossible (HTTP ${res.status}).`)
+      const saved = body as { promo: Promo; students: Student[] }
+      setSelectedPromo(saved.promo)
+      setEditingId(true)
+      setPromos((current) => [...current.filter((promo) => promo.id !== saved.promo.id), saved.promo].sort((a, b) => a.id - b.id))
+      setStudents((current) => [...current.filter((student) => student.promo?.id !== saved.promo.id), ...saved.students])
+      setStudentCounts((counts) => ({ ...counts, [saved.promo.id]: saved.students.length }))
+      setStudentDrafts([])
+      setMessage('Promotion enregistrée.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l’enregistrement.')
+    } finally {
+      savingPromo.current = false
+      setLoading(false)
+    }
+  }
+
+  {/* TO COMPLETE
+  
+  async function duplicatePromo(promo: Promo) {
+    if (duplicatingId !== null) return
+    setDuplicatingId(promo.id)
+    setDuplicateError('')
+    try {
+      const response = await fetch(selectedPromo ? `/api/promos/${selectedPromo.id}` : '/api/promos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${room.name} (copie)`,
+          rows: room.rows,
+          columns: room.columns,
+          seats: room.seats.map(({ row, column, type, equipment }) => ({ row, column, type, equipment })),
+        }),
+      })
+      if (!response.ok) {
+        const detail = await response.text()
+        throw new Error(detail || `Duplication impossible (HTTP ${response.status}).`)
+      }
+      const copy: Room = await response.json()
+      setRooms(current => [...current, copy])
+    } catch (err) {
+      setDuplicateError(err instanceof Error ? err.message : 'Duplication impossible.')
+    } finally {
+      setDuplicatingId(null)
+    }
+  }
+  
+  */}
 
   return (
   <div>
@@ -304,6 +336,7 @@ function PromoPage() {
                           event.stopPropagation()
                           openPromoDialog(promo)
                         }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
+                        <img onClick={(e) => { e.stopPropagation(); /* void duplicatePromo(promo) */ }} src="/duplicate.svg" alt={`Dupliquer la salle ${room.name}`} title="Dupliquer la salle" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
                         <img onClick={(e) => { e.stopPropagation(); setDeletingId(promo.id); dialogConfirmPromo.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
                     </div>
                 </div>
@@ -350,6 +383,7 @@ function PromoPage() {
                   }} disabled={deletingGroup !== null || deletingStudent} aria-label={`Supprimer le groupe ${thisGroup}`} className='flex items-center justify-center px-2 py-1 h-[25px] border-1 border-gray-900 rounded-md hover:bg-[#9FACB2] disabled:opacity-50'>
                     <img className='w-4 h-4 invert-[90%]' src="/trash.svg" alt="" />
                   </button>
+                  
                 </div>
               ))}
               {addingGroup && (

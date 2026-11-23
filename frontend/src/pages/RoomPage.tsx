@@ -122,7 +122,6 @@ function RoomPage() {
           name: `${room.name} (copie)`,
           rows: room.rows,
           columns: room.columns,
-          // Les cases absentes restent des couloirs. Le serveur attribue de nouveaux identifiants.
           seats: room.seats.map(({ row, column, type, equipment }) => ({ row, column, type, equipment })),
         }),
       })
@@ -302,9 +301,7 @@ function RoomPage() {
                 <p className="text-sm 2xl:text-base truncate text-center text-[#4D4D4D] select-none">Places disponibles : {room.usableSeatCount}</p>
                 <div className="flex justify-center mt-3 2xl:mt-6 gap-2 visible md:invisible md:group-hover:visible md:group-focus-within:visible">
                   <img onClick={(e) => { e.stopPropagation(); openEdit(room) }} src="/pen.svg" alt="Modifier" title="Modifier" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
-                  <button type="button" disabled={duplicatingId !== null} onClick={(e) => { e.stopPropagation(); void duplicateRoom(room) }} aria-label={`Dupliquer la salle ${room.name}`} title="Dupliquer la salle" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500 disabled:opacity-50">
-                    <img src="/duplicate.svg" alt="" className="w-full h-full object-contain" />
-                  </button>
+                  <img onClick={(e) => { e.stopPropagation(); void duplicateRoom(room) }} src="/duplicate.svg" alt={`Dupliquer la salle ${room.name}`} title="Dupliquer la salle" className="w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500"/>
                   <img onClick={(e) => { e.stopPropagation(); setDeletingId(room.id); dialogConfirm.current?.showModal() }} src="/trash.svg" alt="Supprimer" title="Supprimer" className='w-12 h-12 2xl:w-15 2xl:h-15 shrink-0 object-contain bg-gray-400 p-2 2xl:p-3 rounded-md hover:bg-gray-500'/>
                 </div>
               </div>
